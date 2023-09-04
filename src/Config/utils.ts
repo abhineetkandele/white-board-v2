@@ -87,33 +87,6 @@ export const loadImage = (
   }
 };
 
-export const createIndexDBConnection = (
-  dbName: string,
-  storeName: string,
-  storeOptions: IDBObjectStoreParameters
-) => {
-  if (!indexedDB) {
-    console.warn(
-      "IndexedDB could not be found in this browser. Data will be lost on page refresh"
-    );
-    return;
-  }
-
-  const request = indexedDB.open(dbName, 1);
-
-  request.onerror = (error) => console.warn("Error occured", error);
-
-  request.onupgradeneeded = () => {
-    const db = request.result;
-
-    if (!db.objectStoreNames.contains(storeName)) {
-      db.createObjectStore(storeName, storeOptions);
-    }
-  };
-
-  return request;
-};
-
 export const getStorageData = () => {
   const data = localStorage.getItem("data");
 

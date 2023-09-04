@@ -1,4 +1,5 @@
 import { Cache } from "./Cache";
+import { IndexDB } from "./IndexDB";
 import { TOP_PANEL_OPTIONS } from "./TopPanel";
 import { getStorageData } from "./utils";
 
@@ -193,7 +194,6 @@ export const handleAddText = (
 
 const redrawImage = (
   ctx: CanvasRenderingContext2D,
-  indexDB: IDBDatabase,
   x: number,
   y: number,
   width: number,
@@ -209,21 +209,16 @@ const redrawImage = (
   }
 
   return new Promise((resolve) => {
+    const indexDB = IndexDB.getDatabase();
     const tx = indexDB.transaction("files", "readonly");
     const store = tx.objectStore("files");
     const data = store.get(fileId);
 
     data.onsuccess = () => {
       if (data?.result) {
-        // ctx.putImageData(data.result[0], 0, 0);
         const img = new Image();
 
         img.onload = function () {
-          // const imgWidth = img.naturalWidth;
-          // const imgHeight = img.naturalHeight;
-          // const aspectRatio = imgWidth / imgHeight;
-          // const width = 200;
-          // const height = width / aspectRatio;
           ctx.drawImage(img, x, y, width, height);
           Cache.setCache(fileId, img);
           resolve("");
@@ -234,12 +229,9 @@ const redrawImage = (
   });
 };
 
-export const redrawShapes = async (
-  ctx: CanvasRenderingContext2D,
-  indexDB: IDBDatabase
-) => {
+export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
   const data = getStorageData();
-  console.log("redrawShapes", data);
+  // console.log("redrawShapes", data, indexDB);
 
   for (const shapeObj of data) {
     const {
@@ -273,7 +265,7 @@ export const redrawShapes = async (
 
     switch (selectedTool) {
       case ADD_IMAGE:
-        await redrawImage(ctx, indexDB, x, y, width, height, fileId);
+        await redrawImage(ctx, x, y, width, height, fileId);
         break;
       case ADD_TEXT:
         drawText(ctx, x, y, text, null, lineWidth, strokeStyle as string);
@@ -329,8 +321,7 @@ export const redrawCanvas = (
   board: HTMLDivElement,
   onPointerDown: (e: PointerEvent) => void,
   onPointerUp: (e: PointerEvent) => void,
-  onPointerMove: (e: PointerEvent) => void,
-  indexDB: IDBDatabase
+  onPointerMove: (e: PointerEvent) => void
 ) => {
   const canvas = document.createElement("canvas");
   canvas.onpointerdown = onPointerDown;
@@ -364,7 +355,7 @@ export const redrawCanvas = (
     canvas.width = width * ratio;
     canvas.height = height * ratio;
     ctx.scale(ratio, ratio);
-    redrawShapes(ctx, indexDB);
+    redrawShapes(ctx);
   });
 
   return {

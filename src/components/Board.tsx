@@ -12,13 +12,13 @@ import {
 } from "../Config/canvasUtils";
 import { TOP_PANEL_OPTIONS } from "../Config/TopPanel";
 import {
-  createIndexDBConnection,
   getCords,
   handleEraser,
   loadImage,
   resetStorageData,
   storeDataObj,
 } from "../Config/utils";
+import { IndexDB } from "../Config/IndexDB";
 
 const {
   RECTANGLE,
@@ -56,13 +56,6 @@ const Board = () => {
   }>();
   const cursorCords = useRef<number[][]>([]);
   const countRef = useRef<number>(0);
-  const indexDBRef = useRef<IDBDatabase>();
-
-  const saveFileToDB = useCallback((data: object) => {
-    const tx = indexDBRef.current!.transaction("files", "readwrite");
-    const store = tx.objectStore("files");
-    store.add(data);
-  }, []);
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
@@ -94,7 +87,6 @@ const Board = () => {
           handleEraser(xCord, yCord, handleResize);
           break;
         case PENCIL:
-          // case ERASER:
           if (x === xCord && y === yCord) {
             ctx.lineTo(xCord - 1, yCord - 1);
             cursorCords.current.push([xCord - 0.1, yCord - 0.1]);
@@ -195,8 +187,6 @@ const Board = () => {
       }
 
       if (selectedTool === ADD_IMAGE && imageDataRef.current) {
-        // ctx.putImageData(snapshotRef.current!, 0, 0);
-
         console.log("here in  adding image 1");
         const { img, width, height, fileId } = imageDataRef.current;
 
@@ -223,9 +213,6 @@ const Board = () => {
           height: 0,
           fileId: "",
         };
-
-        // saveFileToDB()
-        // isDrawing.current = false;
       }
 
       if (selectedTool !== LINE || isNewLine.current) {
@@ -298,14 +285,6 @@ const Board = () => {
         isNewLine.current = true;
       }
 
-      // if (selectedTool !== ERASER) {
-      //   ctx.globalCompositeOperation = "source-over";
-      // } else {
-      //   ctx.setLineDash([]);
-      //   ctx.globalAlpha = 1;
-      //   ctx.globalCompositeOperation = "destination-out";
-      // }
-
       snapshotRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
       onPointerMove(e);
     },
@@ -375,7 +354,7 @@ const Board = () => {
         fileId,
       };
       snapshotRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      saveFileToDB({ dataUrl, fileId });
+      IndexDB.saveFileToDB({ dataUrl, fileId });
     };
 
     const handleInputChange = (e: Event) => {
@@ -383,9 +362,6 @@ const Board = () => {
     };
 
     if (selectedTool === CLEAR) {
-      // ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // ctx.fillStyle = "#ffffff";
-      // ctx.fillRect(0, 0, canvas.width, canvas.height);
       resetStorageData();
       resetSelection();
     } else if (selectedTool === DOWNLOAD) {
@@ -410,57 +386,32 @@ const Board = () => {
       input?.removeEventListener("change", handleInputChange);
       input?.removeEventListener("cancel", resetSelection);
     };
-  }, [saveFileToDB, selectedTool, setState]);
-
-  // useEffect(() => {
-  //   const request = createIndexDBConnection("white-board", "files", {
-  //     keyPath: "fileId",
-  //   });
-
-  //   request!.onsuccess = (e) => {
-  //     indexDBRef.current = (e.target as IDBOpenDBRequest).result;
-
-  //     // const tx = indexDBRef.current.transaction("files", "readonly");
-  //     // const store = tx.objectStore("files");
-  //     // const data = store.getAll();
-
-  //     // data.onsuccess = () => {
-  //     //   if (data?.result[0]) {
-  //     //     contextRef.current!.putImageData(data.result[0], 0, 0);
-  //     //   }
-  //     // };
-  //   };
-  // }, []);
+  }, [selectedTool, setState]);
 
   const handleResize = useCallback(() => {
-    // console.log("indexDBRef.current", indexDBRef.current);
     const { canvas, ctx } = redrawCanvas(
       boardRef.current!,
       onPointerDown,
       onPointerUp,
-      onPointerMove,
-      indexDBRef.current!
+      onPointerMove
     );
     canvasRef.current = canvas;
     contextRef.current = ctx;
   }, [onPointerDown, onPointerMove, onPointerUp]);
 
   useEffect(() => {
-    const request = createIndexDBConnection("white-board", "files", {
-      keyPath: "fileId",
-    });
-
-    request!.onsuccess = (e) => {
-      indexDBRef.current = (e.target as IDBOpenDBRequest).result;
-
-      console.log("indexDBRef.current", indexDBRef.current);
+    let idbDatabaseRef: IDBDatabase;
+    const handleSuccess = (e: Event) => {
+      idbDatabaseRef = (e.target as IDBOpenDBRequest).result;
       handleResize();
-
-      window.addEventListener("resize", handleResize);
     };
 
+    IndexDB.getRequest(handleSuccess);
+
+    window.addEventListener("resize", handleResize);
+
     return () => {
-      indexDBRef.current?.close();
+      idbDatabaseRef?.close();
       window.removeEventListener("resize", handleResize);
     };
   }, [handleResize]);
