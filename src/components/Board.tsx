@@ -19,6 +19,7 @@ import {
   storeDataObj,
 } from "../Config/utils";
 import { IndexDB } from "../Config/IndexDB";
+import { Canvas } from "../Config/Canvas";
 
 const {
   RECTANGLE,
@@ -42,8 +43,6 @@ const Board = () => {
   ] = useContext(AppContext);
 
   const boardRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const contextRef = useRef<CanvasRenderingContext2D | null>();
   const isDrawing = useRef(false);
   const isNewLine = useRef(true);
   const startingCords = useRef<{ x: number; y: number }>();
@@ -59,13 +58,11 @@ const Board = () => {
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
-      console.log("onPointerMove");
       const { xCord, yCord } = getCords(e);
 
-      const ctx = contextRef.current!;
+      const ctx = Canvas.getContext();
 
       if (selectedTool === ADD_IMAGE && imageDataRef.current) {
-        console.log("here in  adding image");
         ctx.putImageData(snapshotRef.current!, 0, 0);
 
         const { img, width, height } = imageDataRef.current;
@@ -79,12 +76,14 @@ const Board = () => {
 
       if (!isDrawing.current) return;
 
-      ctx.putImageData(snapshotRef.current!, 0, 0);
+      if (selectedTool !== ERASER) {
+        ctx.putImageData(snapshotRef.current!, 0, 0);
+      }
       const { x, y } = startingCords.current!;
 
       switch (selectedTool) {
         case ERASER:
-          handleEraser(xCord, yCord, handleResize);
+          handleEraser(Math.floor(xCord), Math.floor(yCord), handleResize);
           break;
         case PENCIL:
           if (x === xCord && y === yCord) {
@@ -117,16 +116,6 @@ const Board = () => {
         case ARROW:
           drawArrow(ctx, x, y, xCord, yCord);
           break;
-
-        // case "Add Text": // font family
-        // undo redo
-        // in mobile content is not visible when drawn but visible when downloaded
-        // retain aspect ratio of canvas after resizing
-        // add theme light and dark
-        // check handleWheel for moving canvas
-        // add cache for fast image load - Done
-        // add eraser support
-        // add resize
       }
     },
     [opacity, selectedTool]
@@ -135,13 +124,12 @@ const Board = () => {
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
       e.stopPropagation();
-      console.log("onPointerDown");
       const { xCord, yCord } = getCords(e);
 
       isDrawing.current = true;
 
-      const canvas = canvasRef.current!;
-      const ctx = contextRef.current!;
+      const canvas = Canvas.getCanvas();
+      const ctx = Canvas.getContext();
 
       if (selectedTool === ADD_TEXT) {
         handleAddText(
@@ -150,13 +138,13 @@ const Board = () => {
           width,
           opacity,
           color,
-          contextRef,
+          ctx,
           (text, width, height) => {
             isDrawing!.current = false;
             if (text) {
               storeDataObj(
                 selectedTool,
-                contextRef.current!,
+                ctx,
                 xCord,
                 yCord,
                 width,
@@ -187,14 +175,13 @@ const Board = () => {
       }
 
       if (selectedTool === ADD_IMAGE && imageDataRef.current) {
-        console.log("here in  adding image 1");
         const { img, width, height, fileId } = imageDataRef.current;
 
         ctx.drawImage(img, xCord, yCord, width * 3, height * 3);
 
         storeDataObj(
           selectedTool,
-          contextRef.current!,
+          ctx,
           xCord,
           yCord,
           0,
@@ -216,20 +203,18 @@ const Board = () => {
       }
 
       if (selectedTool !== LINE || isNewLine.current) {
-        console.log("startingCords set", xCord, yCord);
         startingCords.current = {
           x: xCord,
           y: yCord,
         };
         ctx.beginPath();
       }
-      console.log("isNewLine.current", isNewLine.current);
+
       if (selectedTool === LINE) {
         countRef.current += 1;
 
         ctx.lineTo(xCord, yCord);
         cursorCords.current.push([xCord, yCord]);
-        console.log("cursorCords", cursorCords.current);
         ctx.stroke();
         ctx.save();
 
@@ -237,7 +222,7 @@ const Board = () => {
         if (!isNewLine.current) {
           storeDataObj(
             selectedTool,
-            contextRef.current!,
+            ctx,
             x,
             y,
             xCord,
@@ -248,7 +233,7 @@ const Board = () => {
         } else {
           storeDataObj(
             selectedTool,
-            contextRef.current!,
+            ctx,
             x,
             y,
             xCord,
@@ -272,7 +257,7 @@ const Board = () => {
 
           storeDataObj(
             selectedTool,
-            contextRef.current!,
+            ctx,
             x,
             y,
             xCord,
@@ -301,7 +286,6 @@ const Board = () => {
 
   const onPointerUp = useCallback(
     (e: PointerEvent) => {
-      console.log("onPointerUp", startingCords.current);
       const { xCord, yCord } = getCords(e);
 
       const { x, y } = startingCords.current!;
@@ -311,7 +295,7 @@ const Board = () => {
       if (captureOnUp.includes(selectedTool)) {
         storeDataObj(
           selectedTool,
-          contextRef.current!,
+          Canvas.getContext(),
           x,
           y,
           xCord,
@@ -332,10 +316,9 @@ const Board = () => {
   );
 
   useEffect(() => {
-    console.log("startingCords.current reste", selectedTool);
     startingCords.current = undefined;
-    const canvas = canvasRef.current!;
-    const ctx = contextRef.current!;
+    const canvas = Canvas.getCanvas();
+
     let input: HTMLInputElement;
 
     const resetSelection = () => setState({ selectedTool: PENCIL });
@@ -353,7 +336,12 @@ const Board = () => {
         height,
         fileId,
       };
-      snapshotRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      snapshotRef.current = Canvas.getContext().getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
       IndexDB.saveFileToDB({ dataUrl, fileId });
     };
 
@@ -389,14 +377,7 @@ const Board = () => {
   }, [selectedTool, setState]);
 
   const handleResize = useCallback(() => {
-    const { canvas, ctx } = redrawCanvas(
-      boardRef.current!,
-      onPointerDown,
-      onPointerUp,
-      onPointerMove
-    );
-    canvasRef.current = canvas;
-    contextRef.current = ctx;
+    redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
   }, [onPointerDown, onPointerMove, onPointerUp]);
 
   useEffect(() => {

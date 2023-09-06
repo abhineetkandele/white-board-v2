@@ -1,4 +1,5 @@
 import { Cache } from "./Cache";
+import { Canvas } from "./Canvas";
 import { IndexDB } from "./IndexDB";
 import { TOP_PANEL_OPTIONS } from "./TopPanel";
 import { getStorageData } from "./utils";
@@ -52,7 +53,7 @@ export const drawTriangle = (
   x2: number,
   y2: number
 ) => {
-  context.beginPath(); // why we need 2 begin path
+  context.beginPath();
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
   context.lineTo(x1 * 2 - x2, y2);
@@ -66,7 +67,7 @@ export const drawDiamond = (
   x2: number,
   y2: number
 ) => {
-  context.beginPath(); // why we need 2 begin path
+  context.beginPath();
   context.moveTo(x1, y1);
   context.lineTo(x2, y2);
   context.lineTo(x1, y1 + (y2 - y1) * 2);
@@ -131,9 +132,7 @@ export const handleAddText = (
   width: number,
   opacity: number,
   color: string,
-  contextRef: React.MutableRefObject<
-    CanvasRenderingContext2D | null | undefined
-  >,
+  ctx: CanvasRenderingContext2D,
   onTextDrawn: (text: string, width: number, height: number) => void
 ) => {
   const textArea = document.createElement("textarea");
@@ -174,7 +173,7 @@ export const handleAddText = (
 
   textArea.onblur = (e) => {
     drawText(
-      contextRef.current!,
+      ctx,
       xCoord,
       yCoord,
       (e.target as HTMLTextAreaElement).value,
@@ -200,7 +199,6 @@ const redrawImage = (
   height: number,
   fileId: string
 ) => {
-  console.log("image redrawn");
   const cachedData = Cache.checkCache(fileId);
 
   if (cachedData) {
@@ -208,30 +206,26 @@ const redrawImage = (
     return;
   }
 
-  return new Promise((resolve) => {
-    const indexDB = IndexDB.getDatabase();
-    const tx = indexDB.transaction("files", "readonly");
-    const store = tx.objectStore("files");
-    const data = store.get(fileId);
+  return new Promise((resolve, reject) => {
+    const successCb = (result: { dataUrl: string }) => {
+      const img = new Image();
 
-    data.onsuccess = () => {
-      if (data?.result) {
-        const img = new Image();
-
-        img.onload = function () {
-          ctx.drawImage(img, x, y, width, height);
-          Cache.setCache(fileId, img);
-          resolve("");
-        };
-        img.src = data.result.dataUrl as string;
-      }
+      img.onload = function () {
+        ctx.drawImage(img, x, y, width, height);
+        Cache.setCache(fileId, img);
+        resolve("");
+      };
+      img.src = result.dataUrl as string;
     };
+
+    const errorCb = () => reject("Error occured while reading data");
+
+    IndexDB.getData(fileId, successCb, errorCb);
   });
 };
 
 export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
   const data = getStorageData();
-  // console.log("redrawShapes", data, indexDB);
 
   for (const shapeObj of data) {
     const {
@@ -323,43 +317,9 @@ export const redrawCanvas = (
   onPointerUp: (e: PointerEvent) => void,
   onPointerMove: (e: PointerEvent) => void
 ) => {
-  const canvas = document.createElement("canvas");
-  canvas.onpointerdown = onPointerDown;
-  canvas.onpointerup = onPointerUp;
-  canvas.onpointermove = onPointerMove;
-
-  // canvasRef.current = canvas;
-
-  const { devicePixelRatio: ratio = 1 } = window;
-
-  const ctx = canvas.getContext("2d", {
-    willReadFrequently: true, // When we want to read data frequently
-    desynchronized: true,
-  })!;
-  // contextRef.current = ctx;
-
-  if (ctx) {
-    console.log("canvas redrwan");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  // boardRef.current!.innerHTML = "";
-  // boardRef.current?.appendChild(canvas);
-  board.innerHTML = "";
-  board.appendChild(canvas);
+  Canvas.createCanvas(board, onPointerDown, onPointerUp, onPointerMove);
 
   requestAnimationFrame(() => {
-    const { width, height } = canvas.getBoundingClientRect();
-
-    canvas.width = width * ratio;
-    canvas.height = height * ratio;
-    ctx.scale(ratio, ratio);
-    redrawShapes(ctx);
+    redrawShapes(Canvas.getContext());
   });
-
-  return {
-    canvas,
-    ctx,
-  };
 };

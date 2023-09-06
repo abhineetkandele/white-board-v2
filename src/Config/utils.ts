@@ -1,3 +1,17 @@
+import { TOP_PANEL_OPTIONS } from "./TopPanel";
+
+const {
+  RECTANGLE,
+  TRIANGLE,
+  CIRCLE,
+  DIAMOND,
+  LINE,
+  ARROW,
+  PENCIL,
+  ADD_TEXT,
+  ADD_IMAGE,
+} = TOP_PANEL_OPTIONS;
+
 export const hex2rgb = (hex: string) => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -7,8 +21,8 @@ export const hex2rgb = (hex: string) => {
 };
 
 export const getCords = (e: PointerEvent) => {
-  const xCord = e.clientX; // || e.changedTouches?.[0].clientX;
-  const yCord = e.clientY; // || e.changedTouches?.[0].clientY;
+  const xCord = e.clientX;
+  const yCord = e.clientY;
 
   return { xCord, yCord };
 };
@@ -24,7 +38,6 @@ export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
     return blob.arrayBuffer();
   }
 
-  // Safari
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -156,14 +169,14 @@ export const storeDataObj = (
   const drawingObj = createDataObj(
     selectedTool,
     context,
-    x1,
-    y1,
-    x2,
-    y2,
+    Math.floor(x1),
+    Math.floor(y1),
+    Math.floor(x2),
+    Math.floor(y2),
     path,
     text,
-    width,
-    height,
+    Math.floor(width),
+    Math.floor(height),
     fileId
   );
 
@@ -179,36 +192,43 @@ export const storeDataObj = (
 };
 
 export const handleEraser = (x: number, y: number, reDraw: () => void) => {
-  console.log("xCord, yCord", x, y);
-  // requestAnimationFrame(() => {
   const data = getStorageData();
 
   if (data.length > 0) {
     const reversedData = [...data].reverse();
 
     const index = reversedData.findIndex(
-      ({ x1, x2, y1, y2, height, width }) => {
-        if (!x2) {
-          x2 = x1 + width;
-        }
-        if (!y2) {
-          y2 = y1 + height;
-        }
-        if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
-          return true;
+      ({ x1, x2, y1, y2, height, width, type, fillStyle }) => {
+        if (
+          (type === RECTANGLE && fillStyle !== "rgba(0, 0, 0, 0)") ||
+          type === ADD_IMAGE
+        ) {
+          if (!x2) {
+            x2 = x1 + width;
+          }
+          if (!y2) {
+            y2 = y1 + height;
+          }
+          if (x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+            return true;
+          }
+        } else if (type === RECTANGLE) {
+          if (
+            (x1 === x && y >= y1 && y <= y2) ||
+            (x2 === x && y >= y1 && y <= y2) ||
+            (y1 === y && x >= x1 && x <= x2) ||
+            (y2 === y && x >= x1 && x <= x2)
+          ) {
+            return true;
+          }
         }
       }
     );
-    console.log("index", index);
+
     if (index !== -1) {
-      console.log("reversedData", reversedData);
       reversedData.splice(index, 1);
-      console.log("reversedData", reversedData);
-      setStorageData(reversedData);
-      requestAnimationFrame(() => reDraw());
+      setStorageData(reversedData.reverse());
       reDraw();
-      // });
     }
   }
-  // });
 };

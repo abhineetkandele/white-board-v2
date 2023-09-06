@@ -48,4 +48,23 @@ export class IndexDB {
   static getDatabase() {
     return this.idbDatabase;
   }
+
+  static getData(
+    id: string,
+    successCb: (result: { dataUrl: string }) => void,
+    errorCb: () => void
+  ) {
+    const indexDB = IndexDB.getDatabase();
+    const tx = indexDB.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const data = store.get(id);
+
+    data.onsuccess = () => {
+      if (data?.result) {
+        successCb(data.result);
+      } else {
+        errorCb();
+      }
+    };
+  }
 }
