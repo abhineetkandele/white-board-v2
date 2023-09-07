@@ -88,7 +88,7 @@ const Board = () => {
         case PENCIL:
           if (x === xCord && y === yCord) {
             ctx.lineTo(xCord - 1, yCord - 1);
-            cursorCords.current.push([xCord - 0.1, yCord - 0.1]);
+            cursorCords.current.push([xCord - 1, yCord - 1]);
           }
           ctx.lineTo(xCord, yCord);
           cursorCords.current.push([xCord, yCord]);
@@ -147,11 +147,13 @@ const Board = () => {
                 ctx,
                 xCord,
                 yCord,
-                width,
-                height,
+                0,
+                0,
                 [],
                 false,
-                text
+                text,
+                width,
+                height
               );
             }
           }
@@ -262,7 +264,8 @@ const Board = () => {
             y,
             xCord,
             yCord,
-            cursorCords.current
+            cursorCords.current,
+            true
           );
           cursorCords.current = [];
         }
@@ -292,7 +295,10 @@ const Board = () => {
 
       const captureOnUp = [RECTANGLE, CIRCLE, TRIANGLE, DIAMOND, ARROW, PENCIL];
 
-      if (captureOnUp.includes(selectedTool)) {
+      if (
+        captureOnUp.includes(selectedTool) &&
+        (selectedTool === PENCIL || x !== xCord || y !== yCord)
+      ) {
         storeDataObj(
           selectedTool,
           Canvas.getContext(),

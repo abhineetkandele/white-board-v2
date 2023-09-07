@@ -76,7 +76,7 @@ export const sidePanelConfig = [
     type: "range",
     min: 1,
     max: 15,
-    excludedOptions: [],
+    excludedOptions: [ERASER],
   },
   {
     id: "strokeStyle",

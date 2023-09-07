@@ -136,6 +136,8 @@ export const handleAddText = (
   onTextDrawn: (text: string, width: number, height: number) => void
 ) => {
   const textArea = document.createElement("textarea");
+  let taHeight = 20;
+  let taWidth = 20;
   textArea.wrap = "off";
   textArea.dir = "auto";
   textArea.tabIndex = 0;
@@ -149,7 +151,8 @@ export const handleAddText = (
         opacity: ${opacity / 100};
         color: ${color};
         font-size: ${width * 6}px;
-        height: ${width * 10}px;
+        height: 20px;
+        line-height: 0.85;
         max-width: ${window.innerWidth - xCoord}px;
         white-space: pre;
         margin: 0px;
@@ -168,7 +171,10 @@ export const handleAddText = (
   );
 
   textArea.oninput = () => {
+    taWidth = textArea.scrollWidth;
+    taHeight = textArea.scrollHeight;
     textArea.style.width = textArea.scrollWidth + "px";
+    textArea.style.height = textArea.scrollHeight + "px";
   };
 
   textArea.onblur = (e) => {
@@ -181,11 +187,8 @@ export const handleAddText = (
       width,
       color
     );
-    onTextDrawn(
-      (e.target as HTMLTextAreaElement).value,
-      textArea.scrollWidth,
-      textArea.scrollHeight
-    );
+
+    onTextDrawn((e.target as HTMLTextAreaElement).value, taWidth, taHeight);
   };
   document.body.appendChild(textArea);
   setTimeout(() => textArea.focus(), 0);
@@ -281,8 +284,8 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
           Math.abs(y - path[path.length - 1][1]) < 10
         ) {
           ctx.closePath();
+          ctx.fill();
         }
-        ctx.fill();
         ctx.stroke();
         break;
       case RECTANGLE:

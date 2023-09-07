@@ -32,3 +32,5 @@ export type StateType = {
 };
 
 export type Store = [StateType, (value: Partial<StateType>) => void];
+
+export type Coordinates = { x: number; y: number };
