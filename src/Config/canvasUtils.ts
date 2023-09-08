@@ -1,4 +1,4 @@
-import { Cache } from "./Cache";
+import { Data } from "./Data";
 import { Canvas } from "./Canvas";
 import { IndexDB } from "./IndexDB";
 import { TOP_PANEL_OPTIONS } from "./TopPanel";
@@ -202,7 +202,7 @@ const redrawImage = (
   height: number,
   fileId: string
 ) => {
-  const cachedData = Cache.checkCache(fileId);
+  const cachedData = Data.checkCache(fileId);
 
   if (cachedData) {
     ctx.drawImage(cachedData, x, y, width, height);
@@ -215,7 +215,7 @@ const redrawImage = (
 
       img.onload = function () {
         ctx.drawImage(img, x, y, width, height);
-        Cache.setCache(fileId, img);
+        Data.setCache(fileId, img);
         resolve("");
       };
       img.src = result.dataUrl as string;

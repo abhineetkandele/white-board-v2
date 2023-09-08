@@ -27,6 +27,11 @@
   padding: 0.5rem;
 }
 
+.bottom {
+  bottom: 1rem;
+  left: 1rem;
+}
+
 .tools {
   padding: 0.6rem;
   cursor: pointer;

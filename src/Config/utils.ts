@@ -1,5 +1,7 @@
-import { Coordinates } from "../types/types";
+import { v4 as uuid } from "uuid";
+import { BoardElement, Coordinates } from "../types/types";
 import { TOP_PANEL_OPTIONS } from "./TopPanel";
+import { Data } from "./Data";
 
 const {
   RECTANGLE,
@@ -108,11 +110,12 @@ export const getStorageData = () => {
     return [];
   }
 
-  return JSON.parse(data) as ReturnType<typeof createDataObj>[];
+  return JSON.parse(data) as BoardElement[];
 };
 
-export const resetStorageData = () => {
+export const resetStorage = () => {
   localStorage.removeItem("data");
+  Data.resetData();
 };
 
 export const setStorageData = (data: object) => {
@@ -130,11 +133,13 @@ export const createDataObj = (
   text: string,
   width: number,
   height: number,
-  fileId: string
-) => {
+  fileId: string,
+  id: string
+): BoardElement => {
   const { lineWidth, globalAlpha, strokeStyle, fillStyle } = context;
 
   return {
+    id: id ? id : uuid(),
     type: selectedTool,
     x1,
     y1,
@@ -167,6 +172,13 @@ export const storeDataObj = (
   height: number = 0,
   fileId: string = ""
 ) => {
+  const data = getStorageData();
+  let oldObj;
+
+  if (updateLast) {
+    oldObj = data.pop();
+  }
+
   const drawingObj = createDataObj(
     selectedTool,
     context,
@@ -178,15 +190,11 @@ export const storeDataObj = (
     text,
     Math.floor(width),
     Math.floor(height),
-    fileId
+    fileId,
+    oldObj?.id || ""
   );
 
-  const data = getStorageData();
-
-  if (updateLast) {
-    data.pop();
-  }
-
+  Data.addHistoryItem(drawingObj);
   data.push(drawingObj);
 
   setStorageData(data);
@@ -399,7 +407,9 @@ export const handleEraser = (x: number, y: number, reDraw: () => void) => {
     );
 
     if (index !== -1) {
-      reversedData.splice(index, 1);
+      const deletedElement = reversedData.splice(index, 1);
+
+      Data.addHistoryItem(deletedElement[0]);
       setStorageData(reversedData.reverse());
       reDraw();
     }

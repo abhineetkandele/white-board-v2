@@ -15,11 +15,12 @@ import {
   getCords,
   handleEraser,
   loadImage,
-  resetStorageData,
+  resetStorage,
   storeDataObj,
 } from "../Config/utils";
 import { IndexDB } from "../Config/IndexDB";
 import { Canvas } from "../Config/Canvas";
+import UndoRedo from "./UndoRedo";
 
 const {
   RECTANGLE,
@@ -356,7 +357,7 @@ const Board = () => {
     };
 
     if (selectedTool === CLEAR) {
-      resetStorageData();
+      resetStorage();
       resetSelection();
     } else if (selectedTool === DOWNLOAD) {
       const link = document.createElement("a");
@@ -406,6 +407,7 @@ const Board = () => {
   return (
     <>
       <div id="board" ref={boardRef} />
+      <UndoRedo handleResize={handleResize} />
     </>
   );
 };

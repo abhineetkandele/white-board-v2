@@ -34,3 +34,22 @@ export type StateType = {
 export type Store = [StateType, (value: Partial<StateType>) => void];
 
 export type Coordinates = { x: number; y: number };
+
+export type BoardElement = {
+  id: string;
+  type: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  dash: number[];
+  lineWidth: number;
+  globalAlpha: number;
+  strokeStyle: string | CanvasGradient | CanvasPattern;
+  fillStyle: string | CanvasGradient | CanvasPattern;
+  path: number[][];
+  text: string;
+  width: number;
+  height: number;
+  fileId: string;
+};
