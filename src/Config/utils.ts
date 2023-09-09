@@ -186,7 +186,7 @@ export const storeDataObj = (
     y1,
     x2,
     y2,
-    path,
+    [...path],
     text,
     Math.floor(width),
     Math.floor(height),

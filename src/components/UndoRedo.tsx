@@ -3,6 +3,7 @@ import Undo from "../assets/undo.svg";
 import Redo from "../assets/redo.svg";
 import { Data } from "../Config/Data";
 import { getStorageData, setStorageData } from "../Config/utils";
+import { TOP_PANEL_OPTIONS } from "../Config/TopPanel";
 
 const UndoRedo = ({ handleResize }: { handleResize: () => void }) => {
   return (
@@ -25,7 +26,10 @@ const UndoRedo = ({ handleResize }: { handleResize: () => void }) => {
           );
 
           if (index >= 0) {
-            if (isEqual(item, storageData[index])) {
+            if (
+              item.type !== TOP_PANEL_OPTIONS.LINE &&
+              isEqual(item, storageData[index])
+            ) {
               storageData.splice(index, 1);
             } else {
               storageData[index] = item;

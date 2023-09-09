@@ -1,6 +1,6 @@
 export class Canvas {
-  static canvas: HTMLCanvasElement;
-  static context: CanvasRenderingContext2D;
+  private static canvas: HTMLCanvasElement;
+  private static context: CanvasRenderingContext2D;
 
   static bindAndScaleCanvas(element: HTMLElement) {
     element.innerHTML = "";

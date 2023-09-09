@@ -1,9 +1,9 @@
 import { BoardElement } from "../types/types";
 
 export class Data {
-  static cache = new Map();
-  static history: BoardElement[] = [];
-  static redoRecords: BoardElement[] = [];
+  private static cache = new Map();
+  private static history: BoardElement[] = [];
+  private static redoRecords: BoardElement[] = [];
 
   static checkCache(key: string) {
     if (this.cache.has(key)) {
