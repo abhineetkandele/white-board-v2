@@ -1,4 +1,4 @@
-import { sidePanelConfig } from "../Config/SidePanel";
+import { sidePanelConfig } from "../utils/sidePanelConfig";
 import Range from "./Range";
 import Selector from "./Selector";
 import Toggle from "./Toggle";
@@ -20,7 +20,7 @@ const SidePanel = ({ className = "" }: { className?: string }) => {
   const [{ selectedTool }] = useContext(AppContext);
 
   return (
-    <div className={className}>
+    <div className={`panel-wrapper ${className}`}>
       {sidePanelConfig.map(
         ({
           id,

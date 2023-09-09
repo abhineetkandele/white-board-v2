@@ -27,7 +27,7 @@ export type StateType = {
   color: string;
   backgroundColor: string;
   width: number;
-  strokeStyle: string;
+  strokeStyle: "Solid" | "Dashed" | "Dotted";
   opacity: number;
 };
 

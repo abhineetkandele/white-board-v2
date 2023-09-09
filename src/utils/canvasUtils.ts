@@ -1,8 +1,8 @@
 import { Data } from "./Data";
 import { Canvas } from "./Canvas";
 import { IndexDB } from "./IndexDB";
-import { TOP_PANEL_OPTIONS } from "./TopPanel";
 import { getStorageData } from "./utils";
+import { TOP_PANEL_OPTIONS } from "./constants";
 
 const {
   RECTANGLE,

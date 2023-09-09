@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { panelIcons } from "../Config/TopPanel";
+import { panelIcons } from "../utils/topPanelConfig";
 import { AppContext } from "../context";
 
 const TopPanel = () => {

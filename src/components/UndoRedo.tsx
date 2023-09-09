@@ -4,7 +4,7 @@ import Settings from "../assets/settings.svg";
 import useMobile from "../hooks/useMobile";
 import SidePanel from "./SidePanel";
 import { useState } from "react";
-import { handleRedo, handleUndo } from "../Config/utils";
+import { handleRedo, handleUndo } from "../utils/undoRedo";
 
 const UndoRedo = ({ handleResize }: { handleResize: () => void }) => {
   const isMobile = useMobile();

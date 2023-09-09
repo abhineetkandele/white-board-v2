@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { ConfigObjType, PropsType, StateType } from "../types/types";
 import { AppContext } from "../context";
-import { COLOR_PICKER } from "../Config/SidePanel";
+import { COLOR_PICKER } from "../utils/constants";
 
 const Selector = ({ config, id }: PropsType) => {
   const [state, setState] = useContext(AppContext);

@@ -1,19 +1,15 @@
 import Line from "../assets/line.svg";
 import LineDashed from "../assets/line-dashed.svg";
 import LineDotted from "../assets/line-dotted.svg";
-import { TOP_PANEL_OPTIONS } from "./TopPanel";
+import { COLOR_PICKER, TOP_PANEL_OPTIONS, TRANSPARENT } from "./constants";
 
-const { ERASER, PENCIL, ADD_TEXT, ARROW } = TOP_PANEL_OPTIONS;
+const { ERASER, PENCIL, ADD_TEXT, ARROW, SELECTION } = TOP_PANEL_OPTIONS;
 
 const icons = {
-  line: Line,
-  "line-dashed": LineDashed,
-  "line-dotted": LineDotted,
+  Line,
+  LineDashed,
+  LineDotted,
 };
-
-export const TRANSPARENT = "transparent";
-
-export const COLOR_PICKER = "color-picker";
 
 export const sidePanelConfig = [
   {
@@ -41,7 +37,7 @@ export const sidePanelConfig = [
         color: COLOR_PICKER,
       },
     ],
-    excludedOptions: [ERASER],
+    excludedOptions: [ERASER, SELECTION],
   },
   {
     id: "backgroundColor",
@@ -68,7 +64,7 @@ export const sidePanelConfig = [
         color: COLOR_PICKER,
       },
     ],
-    excludedOptions: [ERASER, PENCIL, ADD_TEXT, ARROW],
+    excludedOptions: [ERASER, SELECTION, PENCIL, ADD_TEXT, ARROW],
   },
   {
     id: "width",
@@ -76,7 +72,7 @@ export const sidePanelConfig = [
     type: "range",
     min: 1,
     max: 15,
-    excludedOptions: [ERASER],
+    excludedOptions: [ERASER, SELECTION],
   },
   {
     id: "strokeStyle",
@@ -84,19 +80,19 @@ export const sidePanelConfig = [
     type: "selector",
     config: [
       {
-        icon: icons["line"],
+        icon: icons.Line,
         title: "Solid",
       },
       {
-        icon: icons["line-dashed"],
+        icon: icons.LineDashed,
         title: "Dashed",
       },
       {
-        icon: icons["line-dotted"],
+        icon: icons.LineDotted,
         title: "Dotted",
       },
     ],
-    excludedOptions: [ERASER, ADD_TEXT],
+    excludedOptions: [ERASER, SELECTION, ADD_TEXT],
   },
   {
     id: "opacity",
@@ -104,6 +100,6 @@ export const sidePanelConfig = [
     type: "range",
     min: 0,
     max: 100,
-    excludedOptions: [ERASER],
+    excludedOptions: [ERASER, SELECTION],
   },
 ];

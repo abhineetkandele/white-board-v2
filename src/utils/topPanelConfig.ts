@@ -10,21 +10,7 @@ import Download from "../assets/download.svg";
 import Pencil from "../assets/pencil.svg";
 import Eraser from "../assets/eraser.svg";
 import AddText from "../assets/text.svg";
-
-export const TOP_PANEL_OPTIONS = {
-  RECTANGLE: "Rectangle",
-  CIRCLE: "Circle",
-  DIAMOND: "Diamond",
-  TRIANGLE: "Triangle",
-  LINE: "Line",
-  ARROW: "Arrow",
-  ADD_TEXT: "Add Text",
-  PENCIL: "Pencil",
-  ERASER: "Eraser",
-  ADD_IMAGE: "Add Image",
-  DOWNLOAD: "Download",
-  CLEAR: "Clear",
-};
+import { TOP_PANEL_OPTIONS } from "./constants";
 
 export const panelIcons = [
   {

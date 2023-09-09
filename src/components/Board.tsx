@@ -9,18 +9,18 @@ import {
   drawTriangle,
   handleAddText,
   redrawCanvas,
-} from "../Config/canvasUtils";
-import { TOP_PANEL_OPTIONS } from "../Config/TopPanel";
+} from "../utils/canvasUtils";
 import {
   getCords,
   handleEraser,
   loadImage,
   resetStorage,
   storeDataObj,
-} from "../Config/utils";
-import { IndexDB } from "../Config/IndexDB";
-import { Canvas } from "../Config/Canvas";
+} from "../utils/utils";
+import { IndexDB } from "../utils/IndexDB";
+import { Canvas } from "../utils/Canvas";
 import UndoRedo from "./UndoRedo";
+import { TOP_PANEL_OPTIONS, lineDash } from "../utils/constants";
 
 const {
   RECTANGLE,
@@ -145,7 +145,6 @@ const Board = () => {
             if (text) {
               storeDataObj(
                 selectedTool,
-                ctx,
                 xCord,
                 yCord,
                 0,
@@ -169,13 +168,7 @@ const Board = () => {
       ctx.globalAlpha = opacity / 100;
       ctx.globalCompositeOperation = "source-over";
 
-      if (strokeStyle === "Dashed") {
-        ctx.setLineDash([10, 15]);
-      } else if (strokeStyle === "Dotted") {
-        ctx.setLineDash([1, 15]);
-      } else {
-        ctx.setLineDash([]);
-      }
+      ctx.setLineDash(lineDash[strokeStyle]);
 
       if (selectedTool === ADD_IMAGE && imageDataRef.current) {
         const { img, width, height, fileId } = imageDataRef.current;
@@ -184,7 +177,6 @@ const Board = () => {
 
         storeDataObj(
           selectedTool,
-          ctx,
           xCord,
           yCord,
           0,
@@ -225,7 +217,6 @@ const Board = () => {
         if (!isNewLine.current) {
           storeDataObj(
             selectedTool,
-            ctx,
             x,
             y,
             xCord,
@@ -236,7 +227,6 @@ const Board = () => {
         } else {
           storeDataObj(
             selectedTool,
-            ctx,
             x,
             y,
             xCord,
@@ -260,7 +250,6 @@ const Board = () => {
 
           storeDataObj(
             selectedTool,
-            ctx,
             x,
             y,
             xCord,
@@ -302,7 +291,6 @@ const Board = () => {
       ) {
         storeDataObj(
           selectedTool,
-          Canvas.getContext(),
           x,
           y,
           xCord,

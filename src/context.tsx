@@ -6,10 +6,9 @@ import {
   useState,
 } from "react";
 import { StateType, Store } from "./types/types";
-import { TRANSPARENT } from "./Config/SidePanel";
-import { TOP_PANEL_OPTIONS } from "./Config/TopPanel";
+import { TOP_PANEL_OPTIONS, TRANSPARENT } from "./utils/constants";
 
-const appState = {
+const appState: StateType = {
   selectedTool: TOP_PANEL_OPTIONS.PENCIL,
   color: "#000000",
   backgroundColor: TRANSPARENT,

@@ -1,3 +1,7 @@
+.panel-wrapper {
+  display: contents;
+}
+
 .panel-container {
   position: absolute;
   border: 1px solid #00000021;
