@@ -23,7 +23,7 @@
   margin-left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  max-height: 90vh;
+  max-height: calc(90% - 10rem);
   padding: 0.5rem;
 }
 
@@ -156,4 +156,19 @@ canvas {
   height: 100%;
   width: 100%;
   touch-action: none;
+}
+
+.mobile {
+  flex-direction: column;
+  padding: 0 0.5rem;
+  width: calc(100% - 3rem);
+}
+
+.bottom .container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.bottom.mobile .container {
+  padding: 0.25em;
 }

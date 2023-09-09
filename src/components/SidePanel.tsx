@@ -16,11 +16,11 @@ const sectionTypes: {
   range: Range,
 };
 
-const SidePanel = () => {
+const SidePanel = ({ className = "" }: { className?: string }) => {
   const [{ selectedTool }] = useContext(AppContext);
 
   return (
-    <div className="panel-container side">
+    <div className={className}>
       {sidePanelConfig.map(
         ({
           id,
