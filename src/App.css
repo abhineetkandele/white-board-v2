@@ -12,6 +12,7 @@
   box-shadow: 0 0 5px 1px #eee;
   gap: 0.5rem;
   display: flex;
+  z-index: 3;
 }
 
 .top {
@@ -160,6 +161,15 @@ canvas {
   height: 100%;
   width: 100%;
   touch-action: none;
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+}
+
+#edit-mode {
+  z-index: 2;
+  display: none;
 }
 
 .mobile {

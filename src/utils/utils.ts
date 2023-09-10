@@ -1,3 +1,4 @@
+import React from "react";
 import { v4 as uuid } from "uuid";
 import { BoardElement } from "../types/types";
 import { Data } from "./Data";
@@ -12,9 +13,12 @@ export const hex2rgb = (hex: string) => {
   return { r, g, b };
 };
 
-export const getCords = (e: PointerEvent) => {
-  const xCord = Math.floor(e.clientX);
-  const yCord = Math.floor(e.clientY);
+export const getCords = (
+  e: PointerEvent | React.PointerEvent<HTMLCanvasElement>,
+  isRound = true
+) => {
+  const xCord = isRound ? Math.floor(e.clientX) : e.clientX;
+  const yCord = isRound ? Math.floor(e.clientY) : e.clientY;
 
   return { xCord, yCord };
 };

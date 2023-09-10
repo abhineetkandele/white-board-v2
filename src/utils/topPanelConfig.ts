@@ -1,3 +1,4 @@
+import Selection from "../assets/selection.svg";
 import Rectagle from "../assets/rectangle.svg";
 import Diamond from "../assets/diamond.svg";
 import Triangle from "../assets/triangle.svg";
@@ -13,6 +14,10 @@ import AddText from "../assets/text.svg";
 import { TOP_PANEL_OPTIONS } from "./constants";
 
 export const panelIcons = [
+  {
+    src: Selection,
+    title: TOP_PANEL_OPTIONS.SELECTION,
+  },
   {
     src: Rectagle,
     title: TOP_PANEL_OPTIONS.RECTANGLE,

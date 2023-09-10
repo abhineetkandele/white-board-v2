@@ -21,6 +21,7 @@ import { IndexDB } from "../utils/IndexDB";
 import { Canvas } from "../utils/Canvas";
 import UndoRedo from "./UndoRedo";
 import { TOP_PANEL_OPTIONS, lineDash } from "../utils/constants";
+import EditBoard from "./EditBoard";
 
 const {
   RECTANGLE,
@@ -35,6 +36,7 @@ const {
   PENCIL,
   ERASER,
   CLEAR,
+  SELECTION,
 } = TOP_PANEL_OPTIONS;
 
 const Board = () => {
@@ -44,6 +46,7 @@ const Board = () => {
   ] = useContext(AppContext);
 
   const boardRef = useRef<HTMLDivElement>(null);
+  const editCanvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const isNewLine = useRef(true);
   const startingCords = useRef<{ x: number; y: number }>();
@@ -77,7 +80,7 @@ const Board = () => {
 
       if (!isDrawing.current) return;
 
-      if (selectedTool !== ERASER) {
+      if (selectedTool !== ERASER && selectedTool !== SELECTION) {
         ctx.putImageData(snapshotRef.current!, 0, 0);
       }
       const { x, y } = startingCords.current!;
@@ -225,14 +228,7 @@ const Board = () => {
             true
           );
         } else {
-          storeDataObj(
-            selectedTool,
-            x,
-            y,
-            xCord,
-            yCord,
-            cursorCords.current
-          );
+          storeDataObj(selectedTool, x, y, xCord, yCord, cursorCords.current);
         }
         isNewLine.current = false;
 
@@ -285,18 +281,24 @@ const Board = () => {
 
       const captureOnUp = [RECTANGLE, CIRCLE, TRIANGLE, DIAMOND, ARROW, PENCIL];
 
+      // if (selectedTool === RECTANGLE && (x !== xCord || y !== yCord)) {
+      //   let x1 = x;
+      //   let y1 = y;
+      //   let x2 = xCord;
+      //   let y2 = yCord;
+
+      //   console.log(" x1, y1, x2, y2", x1, y1, x2, y2);
+
+      //   storeDataObj(selectedTool, x1, y1, x2, y2, cursorCords.current);
+
+      //   cursorCords.current = [];
+      // }
+
       if (
         captureOnUp.includes(selectedTool) &&
         (selectedTool === PENCIL || x !== xCord || y !== yCord)
       ) {
-        storeDataObj(
-          selectedTool,
-          x,
-          y,
-          xCord,
-          yCord,
-          cursorCords.current
-        );
+        storeDataObj(selectedTool, x, y, xCord, yCord, cursorCords.current);
 
         cursorCords.current = [];
       }
@@ -312,6 +314,15 @@ const Board = () => {
 
   useEffect(() => {
     startingCords.current = undefined;
+
+    const editCanvas = editCanvasRef.current!;
+
+    if (selectedTool !== SELECTION) {
+      editCanvas.style.display = "none";
+    } else {
+      editCanvas.style.display = "block";
+    }
+
     const canvas = Canvas.getCanvas();
 
     let input: HTMLInputElement;
@@ -395,6 +406,7 @@ const Board = () => {
   return (
     <>
       <div id="board" ref={boardRef} />
+      <EditBoard editRef={editCanvasRef} handleResize={handleResize} />
       <UndoRedo handleResize={handleResize} />
     </>
   );

@@ -123,7 +123,11 @@ export const isPointInsideCircle = (
   return distance < r;
 };
 
-export const detectPointLocation = (x: number, y: number) => {
+export const detectPointLocation = (
+  x: number,
+  y: number,
+  selectedElement = ""
+) => {
   const data = getStorageData();
 
   if (data.length === 0) return -1;
@@ -131,7 +135,7 @@ export const detectPointLocation = (x: number, y: number) => {
   const reversedData = [...data].reverse();
 
   return reversedData.findIndex(
-    ({ x1, x2, y1, y2, height, width, type, fillStyle, path }) => {
+    ({ x1, x2, y1, y2, height, width, type, fillStyle, path, id }) => {
       const point = { x, y };
 
       if (isClosedPolygon(type, path)) {
@@ -167,7 +171,10 @@ export const detectPointLocation = (x: number, y: number) => {
           polygon = path.slice(0, -1).map(([x, y]) => ({ x, y }));
         }
 
-        if (isInsideCheck(type, fillStyle as string)) {
+        if (
+          isInsideCheck(type, fillStyle as string) ||
+          selectedElement === id
+        ) {
           return isPointInsidePolygon(point, polygon);
         }
         return isPointOnShapeBoundary(point, polygon);
@@ -226,4 +233,26 @@ export const detectPointLocation = (x: number, y: number) => {
       }
     }
   );
+};
+
+export const isPointerOnRectangleCorner = (
+  x: number,
+  y: number,
+  x1: number,
+  y1: number,
+  w: number,
+  h: number
+) => {
+  if (
+    (Math.abs(x - x1) <= 5 && Math.abs(y - y1) <= 5) ||
+    (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1 - h) <= 5)
+  ) {
+    return "nwse-resize";
+  } else if (
+    (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1) <= 5) ||
+    (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5)
+  ) {
+    return "nesw-resize";
+  }
+  return false;
 };

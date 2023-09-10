@@ -53,3 +53,5 @@ export type BoardElement = {
   height: number;
   fileId: string;
 };
+
+export type RectPointsTuple = [number, number, number, number];
