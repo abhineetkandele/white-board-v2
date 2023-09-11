@@ -65,7 +65,7 @@ export const isPointOnLine = (
 
   const lineLength = distance(x1, y1, x2, y2);
 
-  return Math.abs(d1 + d2 - lineLength) < 0.1;
+  return Math.abs(d1 + d2 - lineLength) < 10; //0.1;
 };
 
 export const distance = (x1: number, y1: number, x2: number, y2: number) => {
@@ -171,10 +171,12 @@ export const detectPointLocation = (
           polygon = path.slice(0, -1).map(([x, y]) => ({ x, y }));
         }
 
-        if (
-          isInsideCheck(type, fillStyle as string) ||
-          selectedElement === id
-        ) {
+        if (selectedElement === id) {
+          return (
+            isPointOnShapeBoundary(point, polygon) ||
+            isPointInsidePolygon(point, polygon)
+          );
+        } else if (isInsideCheck(type, fillStyle as string)) {
           return isPointInsidePolygon(point, polygon);
         }
         return isPointOnShapeBoundary(point, polygon);
@@ -242,17 +244,15 @@ export const isPointerOnRectangleCorner = (
   y1: number,
   w: number,
   h: number
-) => {
-  if (
-    (Math.abs(x - x1) <= 5 && Math.abs(y - y1) <= 5) ||
-    (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1 - h) <= 5)
-  ) {
-    return "nwse-resize";
-  } else if (
-    (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1) <= 5) ||
-    (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5)
-  ) {
-    return "nesw-resize";
+): { cursor: string; position: "tl" | "tr" | "bl" | "br" } | false => {
+  if (Math.abs(x - x1) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nwse-resize", position: "tl" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nwse-resize", position: "br" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nesw-resize", position: "tr" };
+  } else if (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nesw-resize", position: "bl" };
   }
   return false;
 };
