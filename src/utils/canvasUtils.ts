@@ -147,11 +147,11 @@ export const handleAddText = (
         position: absolute;
         background: transparent;
         left: ${xCoord}px;
-        top: ${yCoord - width * 5.5}px;
+        top: ${yCoord}px;
         opacity: ${opacity / 100};
         color: ${color};
         font-size: ${width * 6}px;
-        height: 20px;
+        height: ${width * 6}px;
         line-height: 0.85;
         max-width: ${window.innerWidth - xCoord}px;
         white-space: pre;
@@ -181,7 +181,7 @@ export const handleAddText = (
     drawText(
       ctx,
       xCoord,
-      yCoord,
+      yCoord + width * 4.75,
       (e.target as HTMLTextAreaElement).value,
       textArea,
       width,
@@ -265,7 +265,15 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
         await redrawImage(ctx, x, y, width, height, fileId);
         break;
       case ADD_TEXT:
-        drawText(ctx, x, y, text, null, lineWidth, strokeStyle as string);
+        drawText(
+          ctx,
+          x,
+          y + lineWidth * 4.75,
+          text,
+          null,
+          lineWidth,
+          strokeStyle as string
+        );
         break;
       case PENCIL:
         ctx.moveTo(x, y);

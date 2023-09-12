@@ -12,13 +12,13 @@ import { TOP_PANEL_OPTIONS } from "../utils/constants";
 const {
   RECTANGLE,
   //   TRIANGLE,
-  //   CIRCLE,
+  CIRCLE,
   //   DIAMOND,
   //   DOWNLOAD,
   //   LINE,
   //   ARROW,
   ADD_IMAGE,
-  // ADD_TEXT,
+  ADD_TEXT,
   //   PENCIL,
   //   ERASER,
   //   CLEAR,
@@ -64,8 +64,7 @@ const EditBoard = ({
 
         h = y2 - y1;
         w = x2 - x1;
-      } else {
-        //if (item.type === ADD_IMAGE) {
+      } else if (item.type === ADD_IMAGE || item.type === ADD_TEXT) {
         x1 = item.x1;
         y1 = item.y1;
         h = item.height;
@@ -73,6 +72,16 @@ const EditBoard = ({
 
         y2 = h + y1;
         x2 = w + x1;
+      } else {
+        const r = Math.sqrt(
+          Math.pow(item.x1 - item.x2, 2) + Math.pow(item.y1 - item.y2, 2)
+        );
+        x1 = item.x1 - r;
+        y1 = item.y1 - r;
+        w = r * 2;
+        h = r * 2;
+        x2 = x1 + w;
+        y2 = y1 + h;
       }
 
       const isNegativeWidth = w < 0;
@@ -128,7 +137,6 @@ const EditBoard = ({
     const index = storage.findIndex((el) => el.id === selectedElement.current);
 
     if (index >= 0) {
-      console.log("index", index, selectedElementRect.current);
       // const item = storage[index];
 
       // const { x1, x2, y1, y2 } = item!;
@@ -147,12 +155,6 @@ const EditBoard = ({
           // h
           ...selectedElementRect.current!
         );
-
-      console.log(
-        "cursorCornerCheck",
-        cursorCornerCheck,
-        selectedElement.current
-      );
 
       if (cursorCornerCheck) {
         editCanvas.style.cursor = cursorCornerCheck.cursor;
@@ -211,20 +213,91 @@ const EditBoard = ({
             item.x1 += xDiff;
             item.y1 += yDiff;
           }
+        } else if (item.type === ADD_TEXT) {
+          if (position) {
+            const aspectRatio = item.width / item.height;
+            if (position === "tl") {
+              item.x1 += xDiff;
+              item.y1 += yDiff;
+              item.width -= xDiff;
+              item.height = item.width / aspectRatio;
+              item.lineWidth -= xDiff / 20;
+            } else if (position === "br") {
+              item.width += xDiff;
+              item.height = item.width / aspectRatio;
+              item.lineWidth += xDiff / 20;
+            } else if (position === "bl") {
+              item.x1 += xDiff;
+              item.width -= xDiff;
+              item.height = item.width / aspectRatio;
+              item.lineWidth -= xDiff / 20;
+            } else {
+              item.width += xDiff;
+              item.height = item.width / aspectRatio;
+              item.y1 += yDiff;
+              item.lineWidth += xDiff / 20;
+            }
+          } else {
+            item.x1 += xDiff;
+            item.y1 += yDiff;
+          }
+        } else if (item.type === CIRCLE) {
+          if (position) {
+            if (position === "tl") {
+              item.x1 += xDiff;
+              item.y1 += yDiff;
+              item.x2 += xDiff;
+              item.y2 += yDiff;
+            } else if (position === "br") {
+              item.x1 += xDiff / 2;
+              item.y1 += yDiff / 2;
+              item.x2 += xDiff;
+              item.y2 += yDiff;
+            } else if (position === "bl") {
+              item.x1 += xDiff;
+              item.y1 += yDiff;
+              item.x2 += xDiff;
+              item.y2 += yDiff;
+            } else {
+              item.x1 += xDiff;
+              item.y1 += yDiff;
+              item.x2 += xDiff;
+              item.y2 += yDiff;
+            }
+          } else {
+            item.x1 += xDiff;
+            item.y1 += yDiff;
+            item.x2 += xDiff;
+            item.y2 += yDiff;
+          }
         }
 
-        const { x1: xa, y1: ya, x2, y2, height, width } = item;
-        let xb, yb, w, h;
+        const { x1, y1, x2, y2, height, width, type } = item;
+        let xa, ya, xb, yb, w, h;
         if (height && width) {
+          xa = x1;
+          ya = y1;
           h = height;
           w = width;
+          xb = x1 + w;
+          yb = y1 + h;
+        } else if (type === CIRCLE) {
+          const r = Math.sqrt(
+            Math.pow(item.x1 - item.x2, 2) + Math.pow(item.y1 - item.y2, 2)
+          );
+          xa = item.x1 - r;
+          ya = item.y1 - r;
+          w = r * 2;
+          h = r * 2;
           xb = xa + w;
           yb = ya + h;
         } else {
-          h = y2 - ya;
-          w = x2 - xa;
+          h = y2 - y1;
+          w = x2 - x1;
           xb = x2;
           yb = y2;
+          xa = x1;
+          ya = y1;
         }
 
         const isNegativeWidth = w < 0;
@@ -236,13 +309,14 @@ const EditBoard = ({
           w + (isNegativeWidth ? -10 : 10),
           h + (isNegativeHeight ? -10 : 10),
         ];
-
-        storage[index] = item;
-        setStorageData(storage);
-        handleResize();
-        const ctx = recreateContext(editCanvas);
-        moveRectangle(ctx, xa, ya, xb, yb, w, h);
-        coords.current = { xCord, yCord };
+        if ((x2 > xa && y2 > ya) || (height > 0 && width > 0)) {
+          storage[index] = item;
+          setStorageData(storage);
+          handleResize();
+          const ctx = recreateContext(editCanvas);
+          moveRectangle(ctx, xa, ya, xb, yb, w, h);
+          coords.current = { xCord, yCord };
+        }
       }
     }
   };

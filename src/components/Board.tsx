@@ -149,7 +149,7 @@ const Board = () => {
               storeDataObj(
                 selectedTool,
                 xCord,
-                yCord,
+                yCord, //yCord + width * 4.75,
                 0,
                 0,
                 [],
