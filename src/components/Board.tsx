@@ -46,7 +46,6 @@ const Board = () => {
   ] = useContext(AppContext);
 
   const boardRef = useRef<HTMLDivElement>(null);
-  const editCanvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const isNewLine = useRef(true);
   const startingCords = useRef<{ x: number; y: number }>();
@@ -341,14 +340,6 @@ const Board = () => {
   useEffect(() => {
     startingCords.current = undefined;
 
-    const editCanvas = editCanvasRef.current!;
-
-    if (selectedTool !== SELECTION) {
-      editCanvas.style.display = "none";
-    } else {
-      editCanvas.style.display = "block";
-    }
-
     const canvas = Canvas.getCanvas();
 
     let input: HTMLInputElement;
@@ -432,7 +423,7 @@ const Board = () => {
   return (
     <>
       <div id="board" ref={boardRef} />
-      <EditBoard editRef={editCanvasRef} handleResize={handleResize} />
+      {selectedTool === SELECTION && <EditBoard handleResize={handleResize} />}
       <UndoRedo handleResize={handleResize} />
     </>
   );

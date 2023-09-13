@@ -1,4 +1,4 @@
-import { PointerEvent, useRef } from "react";
+import { PointerEvent, useEffect, useRef } from "react";
 import { getCords, getStorageData, setStorageData } from "../utils/utils";
 import {
   detectPointLocation,
@@ -21,13 +21,8 @@ const {
   //   PENCIL,
 } = TOP_PANEL_OPTIONS;
 
-const EditBoard = ({
-  editRef,
-  handleResize,
-}: {
-  editRef: React.RefObject<HTMLCanvasElement> | null;
-  handleResize: () => void;
-}) => {
+const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
+  const editCanvasRef = useRef<HTMLCanvasElement>(null);
   const selectedElement = useRef("");
   const selectedElementRect = useRef<RectPointsTuple>();
   const isEditing = useRef(false);
@@ -40,7 +35,7 @@ const EditBoard = ({
   };
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     const { xCord, yCord } = getCords(e, false);
-    const editCanvas = editRef!.current!;
+    const editCanvas = editCanvasRef!.current!;
     const index = detectPointLocation(
       xCord,
       yCord,
@@ -123,7 +118,7 @@ const EditBoard = ({
     const { xCord, yCord } = getCords(e, false);
 
     const elIndex = detectPointLocation(xCord, yCord, selectedElement.current);
-    const editCanvas = editRef!.current!;
+    const editCanvas = editCanvasRef!.current!;
 
     if (elIndex >= 0) {
       editCanvas.style.cursor = "move";
@@ -293,7 +288,7 @@ const EditBoard = ({
   return (
     <canvas
       id="edit-mode"
-      ref={editRef}
+      ref={editCanvasRef}
       onPointerUp={onPointerUp}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
