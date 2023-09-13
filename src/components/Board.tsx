@@ -279,9 +279,14 @@ const Board = () => {
 
       const { x, y } = startingCords.current!;
 
-      const captureOnUp = [CIRCLE, TRIANGLE, DIAMOND, ARROW, PENCIL];
+      const captureOnUp = [TRIANGLE, ARROW, PENCIL];
 
-      if (selectedTool === RECTANGLE && (x !== xCord || y !== yCord)) {
+      if (
+        (selectedTool === RECTANGLE ||
+          selectedTool === CIRCLE ||
+          selectedTool === DIAMOND) &&
+        (x !== xCord || y !== yCord)
+      ) {
         let x1 = x;
         let y1 = y;
         let x2 = xCord;
@@ -301,6 +306,18 @@ const Board = () => {
         }
 
         storeDataObj(selectedTool, x1, y1, x2, y2, cursorCords.current);
+
+        cursorCords.current = [];
+      } else if (selectedTool === TRIANGLE && (x !== xCord || y !== yCord)) {
+        let x1 = x;
+        let x2 = xCord;
+
+        if (x1 > x2) {
+          x1 = xCord;
+          x2 = x;
+        }
+
+        storeDataObj(selectedTool, x1, y, x2, yCord, cursorCords.current);
 
         cursorCords.current = [];
       } else if (

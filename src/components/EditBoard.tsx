@@ -3,6 +3,7 @@ import { getCords, getStorageData, setStorageData } from "../utils/utils";
 import {
   detectPointLocation,
   isPointerOnRectangleCorner,
+  isPointerOnReverseTriangleRectangleCorner,
 } from "../utils/detectPointLocation";
 import { RectPointsTuple } from "../types/types";
 import { moveRectangle, recreateContext } from "../utils/editElements";
@@ -10,9 +11,9 @@ import { TOP_PANEL_OPTIONS } from "../utils/constants";
 
 const {
   RECTANGLE,
-  //   TRIANGLE,
+  TRIANGLE,
   CIRCLE,
-  //   DIAMOND,
+  DIAMOND,
   //   LINE,
   //   ARROW,
   ADD_IMAGE,
@@ -47,15 +48,18 @@ const EditBoard = ({
       selectedElementRect.current
     );
 
-    console.log("index", index, xCord, yCord);
-
     if (index >= 0) {
       const storage = getStorageData();
       const ctx = recreateContext(editCanvas);
       const item = storage.at(-1 - index)!;
       let x1, y1, x2, y2, w, h;
 
-      if (item.type === RECTANGLE || item.type === CIRCLE) {
+      if (
+        item.type === RECTANGLE ||
+        item.type === CIRCLE ||
+        item.type === DIAMOND ||
+        item.type === TRIANGLE
+      ) {
         x1 = item.x1;
         y1 = item.y1;
         x2 = item.x2;
@@ -102,14 +106,9 @@ const EditBoard = ({
       const cursorCornerCheck = isPointerOnRectangleCorner(
         xCord,
         yCord,
-        // x1,
-        // y1,
-        // w,
-        // h
         ...selectedElementRect.current!
       );
       if (cursorCornerCheck) {
-        console.log("cursorCornerCheck", cursorCornerCheck);
         isResizing.current = cursorCornerCheck.position;
       }
     } else {
@@ -136,20 +135,32 @@ const EditBoard = ({
     const index = storage.findIndex((el) => el.id === selectedElement.current);
 
     if (index >= 0) {
-      const cursorCornerCheck =
-        selectedElement.current &&
-        isPointerOnRectangleCorner(
-          xCord,
-          yCord,
-          ...selectedElementRect.current!
-        );
+      const item = storage[index];
+      let cursorCornerCheck;
+
+      if (item.type === TRIANGLE && item.y1 > item.y2) {
+        cursorCornerCheck =
+          selectedElement.current &&
+          isPointerOnReverseTriangleRectangleCorner(
+            xCord,
+            yCord,
+            ...selectedElementRect.current!
+          );
+      } else {
+        cursorCornerCheck =
+          selectedElement.current &&
+          isPointerOnRectangleCorner(
+            xCord,
+            yCord,
+            ...selectedElementRect.current!
+          );
+      }
 
       if (cursorCornerCheck) {
         editCanvas.style.cursor = cursorCornerCheck.cursor;
       }
 
       if (isEditing.current) {
-        const item = storage[index];
         const { xCord: x, yCord: y } = coords.current!;
 
         const xDiff = xCord - x;
@@ -157,7 +168,12 @@ const EditBoard = ({
 
         const position = isResizing.current;
 
-        if (item.type === RECTANGLE || item.type === CIRCLE) {
+        if (
+          item.type === RECTANGLE ||
+          item.type === CIRCLE ||
+          item.type === DIAMOND ||
+          item.type === TRIANGLE
+        ) {
           if (position) {
             if (position === "tl") {
               item.x1 += xDiff;
@@ -258,7 +274,11 @@ const EditBoard = ({
           w + (isNegativeWidth ? -10 : 10),
           h + (isNegativeHeight ? -10 : 10),
         ];
-        if ((x2 > xa && y2 > ya) || (height > 0 && width > 0)) {
+        if (
+          (item.type === TRIANGLE && x2 > xa) ||
+          (x2 > xa && y2 > ya) ||
+          (height > 0 && width > 0)
+        ) {
           storage[index] = item;
           setStorageData(storage);
           handleResize();

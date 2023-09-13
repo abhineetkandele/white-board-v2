@@ -187,17 +187,21 @@ export const detectPointLocation = (
             { x: x1, y: y2 },
           ];
         } else if (type === DIAMOND) {
+          const w = x2 - x1;
+          const h = y2 - y1;
           polygon = [
-            { x: x1, y: y1 },
-            { x: x2, y: y2 },
-            { x: x1, y: y1 + (y2 - y1) * 2 },
-            { x: x1 * 2 - x2, y: y2 },
+            { x: x1 + w / 2, y: y1 },
+            { x: x2, y: y2 - h / 2 },
+            { x: x2 - w / 2, y: y2 },
+            { x: x1, y: y1 + h / 2 },
           ];
         } else if (type === TRIANGLE) {
+          const w = x2 - x1;
+
           polygon = [
-            { x: x1, y: y1 },
+            { x: x1 + w / 2, y: y1 },
             { x: x2, y: y2 },
-            { x: x1 * 2 - x2, y: y2 },
+            { x: (x1 + w / 2) * 2 - x2, y: y2 },
           ];
         } else if (type === LINE) {
           polygon = path.slice(0, -1).map(([x, y]) => ({ x, y }));
@@ -293,6 +297,26 @@ export const isPointerOnRectangleCorner = (
     return { cursor: "nesw-resize", position: "tr" };
   } else if (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5) {
     return { cursor: "nesw-resize", position: "bl" };
+  }
+  return false;
+};
+
+export const isPointerOnReverseTriangleRectangleCorner = (
+  x: number,
+  y: number,
+  x1: number,
+  y1: number,
+  w: number,
+  h: number
+): { cursor: string; position: "tl" | "tr" | "bl" | "br" } | false => {
+  if (Math.abs(x - x1) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nesw-resize", position: "bl" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nesw-resize", position: "tr" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nwse-resize", position: "br" };
+  } else if (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nwse-resize", position: "tl" };
   }
   return false;
 };

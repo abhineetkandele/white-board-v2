@@ -53,10 +53,12 @@ export const drawTriangle = (
   x2: number,
   y2: number
 ) => {
+  const w = x2 - x1;
+
   context.beginPath();
-  context.moveTo(x1, y1);
+  context.moveTo(x1 + w / 2, y1);
   context.lineTo(x2, y2);
-  context.lineTo(x1 * 2 - x2, y2);
+  context.lineTo((x1 + w / 2) * 2 - x2, y2);
   context.closePath();
 };
 
@@ -67,24 +69,46 @@ export const drawDiamond = (
   x2: number,
   y2: number
 ) => {
+  const w = x2 - x1;
+  const h = y2 - y1;
+
   context.beginPath();
-  context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
-  context.lineTo(x1, y1 + (y2 - y1) * 2);
-  context.lineTo(x1 * 2 - x2, y2);
+  context.moveTo(x1 + w / 2, y1);
+  context.lineTo(x2, y2 - h / 2);
+  context.lineTo(x2 - w / 2, y2);
+  context.lineTo(x1, y1 + h / 2);
   context.closePath();
 };
 
 export const drawCircle = (
   context: CanvasRenderingContext2D,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
+  x: number,
+  y: number,
+  xCord: number,
+  yCord: number
 ) => {
-  context.beginPath();
+  let x1 = x;
+  let y1 = y;
+  let x2 = xCord;
+  let y2 = yCord;
+
+  if (x1 > x2 && y1 < y2) {
+    x1 = xCord;
+    x2 = x;
+  } else if (x1 < x2 && y1 > y2) {
+    y1 = yCord;
+    y2 = y;
+  } else if (x1 > x2 && y1 > y2) {
+    x1 = xCord;
+    y1 = yCord;
+    x2 = x;
+    y2 = y;
+  }
+
   const radiusX = (x2 - x1) / 2;
   const radiusY = (y2 - y1) / 2;
+
+  context.beginPath();
 
   context.ellipse(
     x1 + radiusX,
