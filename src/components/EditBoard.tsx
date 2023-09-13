@@ -6,7 +6,6 @@ import {
 } from "../utils/detectPointLocation";
 import { RectPointsTuple } from "../types/types";
 import { moveRectangle, recreateContext } from "../utils/editElements";
-// import { AppContext } from "../context";
 import { TOP_PANEL_OPTIONS } from "../utils/constants";
 
 const {
@@ -14,15 +13,11 @@ const {
   //   TRIANGLE,
   CIRCLE,
   //   DIAMOND,
-  //   DOWNLOAD,
   //   LINE,
   //   ARROW,
   ADD_IMAGE,
   ADD_TEXT,
   //   PENCIL,
-  //   ERASER,
-  //   CLEAR,
-  //   SELECTION,
 } = TOP_PANEL_OPTIONS;
 
 const EditBoard = ({
@@ -32,7 +27,6 @@ const EditBoard = ({
   editRef: React.RefObject<HTMLCanvasElement> | null;
   handleResize: () => void;
 }) => {
-  // const [{ selectedTool }] = useContext(AppContext);
   const selectedElement = useRef("");
   const selectedElementRect = useRef<RectPointsTuple>();
   const isEditing = useRef(false);
@@ -46,7 +40,12 @@ const EditBoard = ({
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
     const { xCord, yCord } = getCords(e, false);
     const editCanvas = editRef!.current!;
-    const index = detectPointLocation(xCord, yCord, selectedElement.current);
+    const index = detectPointLocation(
+      xCord,
+      yCord,
+      selectedElement.current,
+      selectedElementRect.current
+    );
 
     console.log("index", index, xCord, yCord);
 
@@ -56,7 +55,7 @@ const EditBoard = ({
       const item = storage.at(-1 - index)!;
       let x1, y1, x2, y2, w, h;
 
-      if (item.type === RECTANGLE) {
+      if (item.type === RECTANGLE || item.type === CIRCLE) {
         x1 = item.x1;
         y1 = item.y1;
         x2 = item.x2;
@@ -137,22 +136,11 @@ const EditBoard = ({
     const index = storage.findIndex((el) => el.id === selectedElement.current);
 
     if (index >= 0) {
-      // const item = storage[index];
-
-      // const { x1, x2, y1, y2 } = item!;
-
-      // const h = y2 - y1;
-      // const w = x2 - x1;
-
       const cursorCornerCheck =
         selectedElement.current &&
         isPointerOnRectangleCorner(
           xCord,
           yCord,
-          // x1,
-          // y1,
-          // w,
-          // h
           ...selectedElementRect.current!
         );
 
@@ -169,7 +157,7 @@ const EditBoard = ({
 
         const position = isResizing.current;
 
-        if (item.type === RECTANGLE) {
+        if (item.type === RECTANGLE || item.type === CIRCLE) {
           if (position) {
             if (position === "tl") {
               item.x1 += xDiff;
@@ -241,38 +229,9 @@ const EditBoard = ({
             item.x1 += xDiff;
             item.y1 += yDiff;
           }
-        } else if (item.type === CIRCLE) {
-          if (position) {
-            if (position === "tl") {
-              item.x1 += xDiff;
-              item.y1 += yDiff;
-              item.x2 += xDiff;
-              item.y2 += yDiff;
-            } else if (position === "br") {
-              item.x1 += xDiff / 2;
-              item.y1 += yDiff / 2;
-              item.x2 += xDiff;
-              item.y2 += yDiff;
-            } else if (position === "bl") {
-              item.x1 += xDiff;
-              item.y1 += yDiff;
-              item.x2 += xDiff;
-              item.y2 += yDiff;
-            } else {
-              item.x1 += xDiff;
-              item.y1 += yDiff;
-              item.x2 += xDiff;
-              item.y2 += yDiff;
-            }
-          } else {
-            item.x1 += xDiff;
-            item.y1 += yDiff;
-            item.x2 += xDiff;
-            item.y2 += yDiff;
-          }
         }
 
-        const { x1, y1, x2, y2, height, width, type } = item;
+        const { x1, y1, x2, y2, height, width } = item;
         let xa, ya, xb, yb, w, h;
         if (height && width) {
           xa = x1;
@@ -281,16 +240,6 @@ const EditBoard = ({
           w = width;
           xb = x1 + w;
           yb = y1 + h;
-        } else if (type === CIRCLE) {
-          const r = Math.sqrt(
-            Math.pow(item.x1 - item.x2, 2) + Math.pow(item.y1 - item.y2, 2)
-          );
-          xa = item.x1 - r;
-          ya = item.y1 - r;
-          w = r * 2;
-          h = r * 2;
-          xb = xa + w;
-          yb = ya + h;
         } else {
           h = y2 - y1;
           w = x2 - x1;

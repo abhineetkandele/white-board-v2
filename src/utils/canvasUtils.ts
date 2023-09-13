@@ -83,8 +83,19 @@ export const drawCircle = (
   y2: number
 ) => {
   context.beginPath();
-  const radius = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-  context.arc(x1, y1, radius, 0, 2 * Math.PI);
+  const radiusX = (x2 - x1) / 2;
+  const radiusY = (y2 - y1) / 2;
+
+  context.ellipse(
+    x1 + radiusX,
+    y1 + radiusY,
+    radiusX,
+    radiusY,
+    0,
+    0,
+    Math.PI * 2,
+    false
+  );
 };
 
 export const drawRectangle = (

@@ -1,4 +1,4 @@
-import { Coordinates } from "../types/types";
+import { Coordinates, RectPointsTuple } from "../types/types";
 import { TOP_PANEL_OPTIONS } from "./constants";
 import { getStorageData } from "./utils";
 
@@ -99,45 +99,77 @@ export const isInsideCheck = (type: string, fillStyle: string) => {
   return false;
 };
 
-export const isPointOnCircle = (
+export const isPointOnEllipseBorder = (
   x: number,
   y: number,
-  cx: number,
-  cy: number,
-  r: number
+  centerX: number,
+  centerY: number,
+  radiusX: number,
+  radiusY: number
 ) => {
-  const distance = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+  const dx = (x - centerX) / radiusX;
+  const dy = (y - centerY) / radiusY;
+  const distanceToEllipse = dx * dx + dy * dy;
 
-  return Math.abs(distance - r) < 1;
+  const threshold = 0.1;
+
+  return (
+    Math.abs(distanceToEllipse - 1) < threshold &&
+    distanceToEllipse >= 1 - threshold
+  );
 };
 
-export const isPointInsideCircle = (
+export const isPointInsideEllipse = (
   x: number,
   y: number,
-  cx: number,
-  cy: number,
-  r: number
+  centerX: number,
+  centerY: number,
+  radiusX: number,
+  radiusY: number
 ) => {
-  const distance = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+  // Calculate the normalized distance from the point to the ellipse center
+  const dx = (x - centerX) / radiusX;
+  const dy = (y - centerY) / radiusY;
 
-  return distance < r;
+  // Check if the point is inside the ellipse equation
+  return dx * dx + dy * dy <= 1;
 };
 
 export const detectPointLocation = (
   x: number,
   y: number,
-  selectedElement = ""
+  selectedElement = "",
+  selectedElementRect?: RectPointsTuple | undefined
 ) => {
   const data = getStorageData();
 
   if (data.length === 0) return -1;
 
+  const point = { x, y };
   const reversedData = [...data].reverse();
+
+  if (selectedElementRect) {
+    const [x1, y1, width, height] = selectedElementRect;
+
+    const x2 = x1 + width;
+    const y2 = y1 + height;
+    const polygon = [
+      { x: x1, y: y1 },
+      { x: x2, y: y1 },
+      { x: x2, y: y2 },
+      { x: x1, y: y2 },
+    ];
+
+    if (
+      isPointOnShapeBoundary(point, polygon) ||
+      isPointInsidePolygon(point, polygon)
+    ) {
+      return reversedData.findIndex(({ id }) => selectedElement === id);
+    }
+  }
 
   return reversedData.findIndex(
     ({ x1, x2, y1, y2, height, width, type, fillStyle, path, id }) => {
-      const point = { x, y };
-
       if (isClosedPolygon(type, path)) {
         let polygon: Coordinates[] = [];
 
@@ -181,12 +213,20 @@ export const detectPointLocation = (
         }
         return isPointOnShapeBoundary(point, polygon);
       } else if (type === CIRCLE) {
-        const radius = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+        const radiusX = (x2 - x1) / 2;
+        const radiusY = (y2 - y1) / 2;
+        const centerX = x1 + radiusX;
+        const centerY = y1 + radiusY;
 
-        if (fillStyle !== "rgba(0, 0, 0, 0)") {
-          return isPointInsideCircle(x, y, x1, y1, radius);
+        if (selectedElement === id) {
+          return (
+            isPointInsideEllipse(x, y, centerX, centerY, radiusX, radiusY) ||
+            isPointOnEllipseBorder(x, y, centerX, centerY, radiusX, radiusY)
+          );
+        } else if (fillStyle !== "rgba(0, 0, 0, 0)") {
+          return isPointInsideEllipse(x, y, centerX, centerY, radiusX, radiusY);
         }
-        return isPointOnCircle(x, y, x1, y1, radius);
+        return isPointOnEllipseBorder(x, y, centerX, centerY, radiusX, radiusY);
       } else if (type === PENCIL) {
         const index = path.findIndex(([x1, y1]) => {
           return Math.abs(x1 - x) < 5 && Math.abs(y1 - y) < 5;
