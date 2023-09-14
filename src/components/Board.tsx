@@ -41,7 +41,7 @@ const {
 
 const Board = () => {
   const [
-    { selectedTool, color, backgroundColor, width, strokeStyle, opacity },
+    { type, strokeStyle, fillStyle, lineWidth, strokePattern, globalAlpha },
     setState,
   ] = useContext(AppContext);
 
@@ -65,13 +65,13 @@ const Board = () => {
 
       const ctx = Canvas.getContext();
 
-      if (selectedTool === ADD_IMAGE && imageDataRef.current) {
+      if (type === ADD_IMAGE && imageDataRef.current) {
         ctx.putImageData(snapshotRef.current!, 0, 0);
 
         const { img, width, height } = imageDataRef.current;
 
         if (img) {
-          ctx.globalAlpha = opacity / 100;
+          ctx.globalAlpha = globalAlpha / 100;
           ctx.drawImage(img, xCord, yCord, width, height);
         }
         return;
@@ -79,12 +79,12 @@ const Board = () => {
 
       if (!isDrawing.current) return;
 
-      if (selectedTool !== ERASER && selectedTool !== SELECTION) {
+      if (type !== ERASER && type !== SELECTION) {
         ctx.putImageData(snapshotRef.current!, 0, 0);
       }
       const { x, y } = startingCords.current!;
 
-      switch (selectedTool) {
+      switch (type) {
         case ERASER:
           handleEraser(Math.floor(xCord), Math.floor(yCord), handleResize);
           break;
@@ -121,7 +121,7 @@ const Board = () => {
           break;
       }
     },
-    [opacity, selectedTool]
+    [globalAlpha, type]
   );
 
   const onPointerDown = useCallback(
@@ -134,21 +134,21 @@ const Board = () => {
       const canvas = Canvas.getCanvas();
       const ctx = Canvas.getContext();
 
-      if (selectedTool === ADD_TEXT) {
+      if (type === ADD_TEXT) {
         handleAddText(
           xCord,
           yCord,
-          width,
-          opacity,
-          color,
+          lineWidth,
+          globalAlpha,
+          strokeStyle,
           ctx,
           (text, width, height) => {
             isDrawing!.current = false;
             if (text) {
               storeDataObj(
-                selectedTool,
+                type,
                 xCord,
-                yCord, //yCord + width * 4.75,
+                yCord,
                 0,
                 0,
                 [],
@@ -162,23 +162,23 @@ const Board = () => {
         );
       }
 
-      ctx.fillStyle = backgroundColor;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = width;
+      ctx.fillStyle = fillStyle;
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = lineWidth;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.globalAlpha = opacity / 100;
+      ctx.globalAlpha = globalAlpha / 100;
       ctx.globalCompositeOperation = "source-over";
 
-      ctx.setLineDash(lineDash[strokeStyle]);
+      ctx.setLineDash(lineDash[strokePattern]);
 
-      if (selectedTool === ADD_IMAGE && imageDataRef.current) {
+      if (type === ADD_IMAGE && imageDataRef.current) {
         const { img, width, height, fileId } = imageDataRef.current;
 
         ctx.drawImage(img, xCord, yCord, width * 3, height * 3);
 
         storeDataObj(
-          selectedTool,
+          type,
           xCord,
           yCord,
           0,
@@ -199,7 +199,7 @@ const Board = () => {
         };
       }
 
-      if (selectedTool !== LINE || isNewLine.current) {
+      if (type !== LINE || isNewLine.current) {
         startingCords.current = {
           x: xCord,
           y: yCord,
@@ -207,7 +207,7 @@ const Board = () => {
         ctx.beginPath();
       }
 
-      if (selectedTool === LINE) {
+      if (type === LINE) {
         countRef.current += 1;
 
         ctx.lineTo(xCord, yCord);
@@ -217,17 +217,9 @@ const Board = () => {
 
         const { x = Infinity, y = Infinity } = startingCords.current || {};
         if (!isNewLine.current) {
-          storeDataObj(
-            selectedTool,
-            x,
-            y,
-            xCord,
-            yCord,
-            cursorCords.current,
-            true
-          );
+          storeDataObj(type, x, y, xCord, yCord, cursorCords.current, true);
         } else {
-          storeDataObj(selectedTool, x, y, xCord, yCord, cursorCords.current);
+          storeDataObj(type, x, y, xCord, yCord, cursorCords.current);
         }
         isNewLine.current = false;
 
@@ -243,15 +235,7 @@ const Board = () => {
           countRef.current = 0;
           isNewLine.current = true;
 
-          storeDataObj(
-            selectedTool,
-            x,
-            y,
-            xCord,
-            yCord,
-            cursorCords.current,
-            true
-          );
+          storeDataObj(type, x, y, xCord, yCord, cursorCords.current, true);
           cursorCords.current = [];
         }
       } else {
@@ -262,13 +246,13 @@ const Board = () => {
       onPointerMove(e);
     },
     [
-      backgroundColor,
-      color,
-      onPointerMove,
-      opacity,
-      selectedTool,
+      fillStyle,
       strokeStyle,
-      width,
+      onPointerMove,
+      globalAlpha,
+      type,
+      strokePattern,
+      lineWidth,
     ]
   );
 
@@ -281,9 +265,7 @@ const Board = () => {
       const captureOnUp = [TRIANGLE, ARROW, PENCIL];
 
       if (
-        (selectedTool === RECTANGLE ||
-          selectedTool === CIRCLE ||
-          selectedTool === DIAMOND) &&
+        (type === RECTANGLE || type === CIRCLE || type === DIAMOND) &&
         (x !== xCord || y !== yCord)
       ) {
         let x1 = x;
@@ -304,10 +286,10 @@ const Board = () => {
           y2 = y;
         }
 
-        storeDataObj(selectedTool, x1, y1, x2, y2, cursorCords.current);
+        storeDataObj(type, x1, y1, x2, y2, cursorCords.current);
 
         cursorCords.current = [];
-      } else if (selectedTool === TRIANGLE && (x !== xCord || y !== yCord)) {
+      } else if (type === TRIANGLE && (x !== xCord || y !== yCord)) {
         let x1 = x;
         let x2 = xCord;
 
@@ -316,25 +298,25 @@ const Board = () => {
           x2 = x;
         }
 
-        storeDataObj(selectedTool, x1, y, x2, yCord, cursorCords.current);
+        storeDataObj(type, x1, y, x2, yCord, cursorCords.current);
 
         cursorCords.current = [];
       } else if (
-        captureOnUp.includes(selectedTool) &&
-        (selectedTool === PENCIL || x !== xCord || y !== yCord)
+        captureOnUp.includes(type) &&
+        (type === PENCIL || x !== xCord || y !== yCord)
       ) {
-        storeDataObj(selectedTool, x, y, xCord, yCord, cursorCords.current);
+        storeDataObj(type, x, y, xCord, yCord, cursorCords.current);
 
         cursorCords.current = [];
       }
 
-      if (selectedTool === ADD_IMAGE) {
-        setState({ selectedTool: PENCIL });
+      if (type === ADD_IMAGE) {
+        setState({ type: PENCIL });
       }
 
       isDrawing.current = false;
     },
-    [selectedTool, setState]
+    [type, setState]
   );
 
   useEffect(() => {
@@ -344,7 +326,7 @@ const Board = () => {
 
     let input: HTMLInputElement;
 
-    const resetSelection = () => setState({ selectedTool: PENCIL });
+    const resetSelection = () => setState({ type: PENCIL });
 
     const handleLoadedImage = (
       img: HTMLImageElement,
@@ -372,17 +354,17 @@ const Board = () => {
       loadImage(e, handleLoadedImage);
     };
 
-    if (selectedTool === CLEAR) {
+    if (type === CLEAR) {
       resetStorage();
       resetSelection();
-    } else if (selectedTool === DOWNLOAD) {
+    } else if (type === DOWNLOAD) {
       const link = document.createElement("a");
       link.download = `${Date.now()}.jpg`;
       link.href = canvas.toDataURL();
       link.click();
       resetSelection();
       link.remove();
-    } else if (selectedTool === ADD_IMAGE) {
+    } else if (type === ADD_IMAGE) {
       input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
@@ -397,7 +379,7 @@ const Board = () => {
       input?.removeEventListener("change", handleInputChange);
       input?.removeEventListener("cancel", resetSelection);
     };
-  }, [selectedTool, setState]);
+  }, [type, setState]);
 
   const handleResize = useCallback(() => {
     redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
@@ -423,7 +405,7 @@ const Board = () => {
   return (
     <>
       <div id="board" ref={boardRef} />
-      {selectedTool === SELECTION && <EditBoard handleResize={handleResize} />}
+      {type === SELECTION && <EditBoard handleResize={handleResize} />}
       <UndoRedo handleResize={handleResize} />
     </>
   );

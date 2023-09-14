@@ -144,29 +144,29 @@ export const drawText = (
   y: number,
   value: string,
   textArea: HTMLTextAreaElement | null,
-  width: number,
-  color: string
+  lineWidth: number,
+  strokeStyle: string
 ) => {
   textArea?.remove();
 
   if (value) {
     ctx.font = `${
-      width * 6
+      lineWidth * 6
     }px LatoWeb, Helvetica Neue, Helvetica, Arial, sans-serif`;
-    ctx.fillStyle = color;
+    ctx.fillStyle = strokeStyle;
 
     const lines = value.split("\n");
     for (let i = 0; i < lines.length; i++)
-      ctx.fillText(lines[i], x, y + i * width * 5);
+      ctx.fillText(lines[i], x, y + i * lineWidth * 5);
   }
 };
 
 export const handleAddText = (
   xCoord: number,
   yCoord: number,
-  width: number,
-  opacity: number,
-  color: string,
+  lineWidth: number,
+  globalAlpha: number,
+  strokeStyle: string,
   ctx: CanvasRenderingContext2D,
   onTextDrawn: (text: string, width: number, height: number) => void
 ) => {
@@ -183,10 +183,10 @@ export const handleAddText = (
         background: transparent;
         left: ${xCoord}px;
         top: ${yCoord}px;
-        opacity: ${opacity / 100};
-        color: ${color};
-        font-size: ${width * 6}px;
-        height: ${width * 6}px;
+        opacity: ${globalAlpha / 100};
+        color: ${strokeStyle};
+        font-size: ${lineWidth * 6}px;
+        height: ${lineWidth * 6}px;
         line-height: 0.85;
         max-width: ${window.innerWidth - xCoord}px;
         white-space: pre;
@@ -216,11 +216,11 @@ export const handleAddText = (
     drawText(
       ctx,
       xCoord,
-      yCoord + width * 4.75,
+      yCoord + lineWidth * 4.75,
       (e.target as HTMLTextAreaElement).value,
       textArea,
-      width,
-      color
+      lineWidth,
+      strokeStyle
     );
 
     onTextDrawn((e.target as HTMLTextAreaElement).value, taWidth, taHeight);
@@ -267,7 +267,7 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
 
   for (const shapeObj of data) {
     const {
-      type: selectedTool,
+      type: type,
       x1: x,
       y1: y,
       x2: xCord,
@@ -295,7 +295,7 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
 
     ctx.beginPath();
 
-    switch (selectedTool) {
+    switch (type) {
       case ADD_IMAGE:
         await redrawImage(ctx, x, y, width, height, fileId);
         break;

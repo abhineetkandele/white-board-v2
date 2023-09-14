@@ -23,12 +23,12 @@ export type PropsType = {
 export type SectionType = (props: PropsType) => JSX.Element;
 
 export type StateType = {
-  selectedTool: string;
-  color: string;
-  backgroundColor: string;
-  width: number;
-  strokeStyle: "Solid" | "Dashed" | "Dotted";
-  opacity: number;
+  type: string;
+  strokeStyle: string;
+  fillStyle: string;
+  lineWidth: number;
+  strokePattern: "Solid" | "Dashed" | "Dotted";
+  globalAlpha: number;
 };
 
 export type Store = [StateType, (value: Partial<StateType>) => void];

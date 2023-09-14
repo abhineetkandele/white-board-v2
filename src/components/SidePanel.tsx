@@ -17,7 +17,7 @@ const sectionTypes: {
 };
 
 const SidePanel = ({ className = "" }: { className?: string }) => {
-  const [{ selectedTool }] = useContext(AppContext);
+  const [{ type }] = useContext(AppContext);
 
   return (
     <div className={`panel-wrapper ${className}`}>
@@ -41,7 +41,7 @@ const SidePanel = ({ className = "" }: { className?: string }) => {
         }) => {
           const Section = sectionTypes[type as ConfigRootType];
 
-          if (excludedOptions.includes(selectedTool)) return;
+          if (excludedOptions.includes(type)) return;
 
           return (
             <div className="section" key={id}>

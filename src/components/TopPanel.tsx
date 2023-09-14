@@ -3,7 +3,7 @@ import { panelIcons } from "../utils/topPanelConfig";
 import { AppContext } from "../context";
 
 const TopPanel = () => {
-  const [{ selectedTool }, setState] = useContext(AppContext);
+  const [{ type }, setState] = useContext(AppContext);
 
   return (
     <div className="panel-container top">
@@ -16,10 +16,10 @@ const TopPanel = () => {
             src={src}
             alt={title}
             title={title}
-            className={`tools ${title === selectedTool && "selected"}`}
+            className={`tools ${title === type && "selected"}`}
             role="button"
             tabIndex={0}
-            onClick={() => setState({ selectedTool: title })}
+            onClick={() => setState({ type: title })}
           />
         );
       })}

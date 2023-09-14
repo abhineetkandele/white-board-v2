@@ -9,12 +9,12 @@ import { StateType, Store } from "./types/types";
 import { TOP_PANEL_OPTIONS, TRANSPARENT } from "./utils/constants";
 
 const appState: StateType = {
-  selectedTool: TOP_PANEL_OPTIONS.PENCIL,
-  color: "#000000",
-  backgroundColor: TRANSPARENT,
-  width: 5,
-  strokeStyle: "Solid",
-  opacity: 100,
+  type: TOP_PANEL_OPTIONS.PENCIL,
+  strokeStyle: "#000000",
+  fillStyle: TRANSPARENT,
+  lineWidth: 5,
+  strokePattern: "Solid",
+  globalAlpha: 100,
 };
 
 const getInitialState = (): StateType => {

@@ -13,7 +13,7 @@ const icons = {
 
 export const sidePanelConfig = [
   {
-    id: "color",
+    id: "strokeStyle",
     label: "Stroke",
     type: "selector",
     config: [
@@ -40,7 +40,7 @@ export const sidePanelConfig = [
     excludedOptions: [ERASER, SELECTION],
   },
   {
-    id: "backgroundColor",
+    id: "fillStyle",
     label: "Background",
     type: "selector",
     config: [
@@ -67,7 +67,7 @@ export const sidePanelConfig = [
     excludedOptions: [ERASER, SELECTION, PENCIL, ADD_TEXT, ARROW],
   },
   {
-    id: "width",
+    id: "lineWidth",
     label: "Width",
     type: "range",
     min: 1,
@@ -75,7 +75,7 @@ export const sidePanelConfig = [
     excludedOptions: [ERASER, SELECTION],
   },
   {
-    id: "strokeStyle",
+    id: "strokePattern",
     label: "Stroke Style",
     type: "selector",
     config: [
@@ -95,7 +95,7 @@ export const sidePanelConfig = [
     excludedOptions: [ERASER, SELECTION, ADD_TEXT],
   },
   {
-    id: "opacity",
+    id: "globalAlpha",
     label: "Opacity",
     type: "range",
     min: 0,

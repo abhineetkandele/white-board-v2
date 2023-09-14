@@ -116,7 +116,7 @@ export const setStorageData = (data: object) => {
 };
 
 export const createDataObj = (
-  selectedTool: string,
+  type: string,
   x1: number,
   y1: number,
   x2: number,
@@ -133,7 +133,7 @@ export const createDataObj = (
 
   return {
     id: id ? id : uuid(),
-    type: selectedTool,
+    type: type,
     x1,
     y1,
     x2,
@@ -152,7 +152,7 @@ export const createDataObj = (
 };
 
 export const storeDataObj = (
-  selectedTool: string,
+  type: string,
   x1: number,
   y1: number,
   x2: number,
@@ -172,7 +172,7 @@ export const storeDataObj = (
   }
 
   const drawingObj = createDataObj(
-    selectedTool,
+    type,
     x1,
     y1,
     x2,
