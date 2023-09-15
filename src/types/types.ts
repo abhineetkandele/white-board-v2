@@ -22,16 +22,23 @@ export type PropsType = {
 
 export type SectionType = (props: PropsType) => JSX.Element;
 
+export type StrokePattern = "Solid" | "Dashed" | "Dotted";
+
 export type StateType = {
   type: string;
   strokeStyle: string;
   fillStyle: string;
   lineWidth: number;
-  strokePattern: "Solid" | "Dashed" | "Dotted";
+  strokePattern: StrokePattern;
   globalAlpha: number;
+  selectedElement: string;
 };
 
-export type Store = [StateType, (value: Partial<StateType>) => void];
+export type Store = [
+  StateType,
+  (value: Partial<StateType>) => void,
+  () => void
+];
 
 export type Coordinates = { x: number; y: number };
 
@@ -55,3 +62,7 @@ export type BoardElement = {
 };
 
 export type RectPointsTuple = [number, number, number, number];
+
+export type RangeOptions = "lineWidth" | "globalAlpha";
+
+export type SelectorOptions = "strokeStyle" | "fillStyle";

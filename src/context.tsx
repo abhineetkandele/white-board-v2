@@ -15,13 +15,19 @@ const appState: StateType = {
   lineWidth: 5,
   strokePattern: "Solid",
   globalAlpha: 100,
+  selectedElement: "",
 };
 
 const getInitialState = (): StateType => {
   const state = localStorage.getItem("state");
 
   if (state) {
-    return JSON.parse(state);
+    const parsedState = JSON.parse(state);
+
+    return {
+      ...parsedState,
+      selectedElement: "",
+    };
   }
 
   return appState;
@@ -34,15 +40,19 @@ const useStoreData = (): Store => {
     setState!((prevState) => ({ ...prevState, ...value }));
   }, []);
 
+  const resetState = useCallback(() => {
+    setState!(appState);
+  }, []);
+
   useEffect(
     () => localStorage.setItem("state", JSON.stringify(state)),
     [state]
   );
 
-  return [state, modifiedSetState];
+  return [state, modifiedSetState, resetState];
 };
 
-export const AppContext = createContext<Store>([appState, () => {}]);
+export const AppContext = createContext<Store>([appState, () => {}, () => {}]);
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
   return (

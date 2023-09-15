@@ -12,9 +12,11 @@ import {
 } from "../utils/canvasUtils";
 import {
   getCords,
+  getStorageData,
   handleEraser,
   loadImage,
   resetStorage,
+  setStorageData,
   storeDataObj,
 } from "../utils/utils";
 import { IndexDB } from "../utils/IndexDB";
@@ -41,8 +43,17 @@ const {
 
 const Board = () => {
   const [
-    { type, strokeStyle, fillStyle, lineWidth, strokePattern, globalAlpha },
+    {
+      type,
+      strokeStyle,
+      fillStyle,
+      lineWidth,
+      strokePattern,
+      globalAlpha,
+      selectedElement,
+    },
     setState,
+    resetState,
   ] = useContext(AppContext);
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -357,6 +368,7 @@ const Board = () => {
     if (type === CLEAR) {
       resetStorage();
       resetSelection();
+      resetState();
     } else if (type === DOWNLOAD) {
       const link = document.createElement("a");
       link.download = `${Date.now()}.jpg`;
@@ -379,7 +391,7 @@ const Board = () => {
       input?.removeEventListener("change", handleInputChange);
       input?.removeEventListener("cancel", resetSelection);
     };
-  }, [type, setState]);
+  }, [type, setState, resetState]);
 
   const handleResize = useCallback(() => {
     redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
@@ -401,6 +413,32 @@ const Board = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, [handleResize]);
+
+  useEffect(() => {
+    if (selectedElement) {
+      const storage = getStorageData();
+      const index = storage.findIndex((el) => el.id === selectedElement);
+
+      if (index >= 0) {
+        const item = storage[index];
+        item.strokeStyle = strokeStyle;
+        item.fillStyle = fillStyle;
+        item.lineWidth = lineWidth;
+        item.globalAlpha = globalAlpha / 100;
+        item.dash = lineDash[strokePattern];
+
+        storage[index] = item;
+        setStorageData(storage);
+      }
+    }
+  }, [
+    strokeStyle,
+    fillStyle,
+    lineWidth,
+    strokePattern,
+    globalAlpha,
+    selectedElement,
+  ]);
 
   return (
     <>

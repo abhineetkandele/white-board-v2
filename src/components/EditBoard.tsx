@@ -1,13 +1,14 @@
-import { PointerEvent, useEffect, useRef } from "react";
+import { PointerEvent, useContext, useRef } from "react";
 import { getCords, getStorageData, setStorageData } from "../utils/utils";
 import {
   detectPointLocation,
   isPointerOnRectangleCorner,
   isPointerOnReverseTriangleRectangleCorner,
 } from "../utils/detectPointLocation";
-import { RectPointsTuple } from "../types/types";
+import { RectPointsTuple, StrokePattern } from "../types/types";
 import { moveRectangle, recreateContext } from "../utils/editElements";
-import { TOP_PANEL_OPTIONS } from "../utils/constants";
+import { TOP_PANEL_OPTIONS, lineDashReverseMapping } from "../utils/constants";
+import { AppContext } from "../context";
 
 const {
   RECTANGLE,
@@ -22,8 +23,8 @@ const {
 } = TOP_PANEL_OPTIONS;
 
 const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
+  const [{ selectedElement }, setState] = useContext(AppContext);
   const editCanvasRef = useRef<HTMLCanvasElement>(null);
-  const selectedElement = useRef("");
   const selectedElementRect = useRef<RectPointsTuple>();
   const isEditing = useRef(false);
   const isResizing = useRef<"tl" | "tr" | "bl" | "br" | undefined>();
@@ -39,7 +40,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
     const index = detectPointLocation(
       xCord,
       yCord,
-      selectedElement.current,
+      selectedElement,
       selectedElementRect.current
     );
 
@@ -94,7 +95,16 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
       moveRectangle(ctx, x1, y1, x2, y2, w, h);
 
-      selectedElement.current = item!.id;
+      const dashValue = item.dash.toString() as "" | "10,15" | "1,15";
+
+      setState({
+        selectedElement: item!.id,
+        strokeStyle: item.strokeStyle as string,
+        fillStyle: item.fillStyle as string,
+        lineWidth: item.lineWidth,
+        globalAlpha: item.globalAlpha * 100,
+        strokePattern: lineDashReverseMapping[dashValue] as StrokePattern,
+      });
       isEditing.current = true;
       coords.current = { xCord, yCord };
 
@@ -108,7 +118,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
       }
     } else {
       recreateContext(editCanvas);
-      selectedElement.current = "";
+      setState({ selectedElement: "" });
       selectedElementRect.current = undefined;
       isResizing.current = undefined;
     }
@@ -117,7 +127,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
   const onPointerMove = (e: PointerEvent<HTMLCanvasElement>) => {
     const { xCord, yCord } = getCords(e, false);
 
-    const elIndex = detectPointLocation(xCord, yCord, selectedElement.current);
+    const elIndex = detectPointLocation(xCord, yCord, selectedElement);
     const editCanvas = editCanvasRef!.current!;
 
     if (elIndex >= 0) {
@@ -127,7 +137,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
     }
 
     const storage = getStorageData();
-    const index = storage.findIndex((el) => el.id === selectedElement.current);
+    const index = storage.findIndex((el) => el.id === selectedElement);
 
     if (index >= 0) {
       const item = storage[index];
@@ -135,7 +145,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
       if (item.type === TRIANGLE && item.y1 > item.y2) {
         cursorCornerCheck =
-          selectedElement.current &&
+          selectedElement &&
           isPointerOnReverseTriangleRectangleCorner(
             xCord,
             yCord,
@@ -143,7 +153,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
           );
       } else {
         cursorCornerCheck =
-          selectedElement.current &&
+          selectedElement &&
           isPointerOnRectangleCorner(
             xCord,
             yCord,

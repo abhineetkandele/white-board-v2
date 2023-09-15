@@ -19,7 +19,7 @@ const TopPanel = () => {
             className={`tools ${title === type && "selected"}`}
             role="button"
             tabIndex={0}
-            onClick={() => setState({ type: title })}
+            onClick={() => setState({ type: title, selectedElement: "" })}
           />
         );
       })}

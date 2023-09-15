@@ -1,12 +1,39 @@
-import { useContext } from "react";
-import { ConfigObjType, PropsType, StateType } from "../types/types";
+import { useContext, useEffect } from "react";
+import {
+  ConfigObjType,
+  PropsType,
+  SelectorOptions,
+  StateType,
+} from "../types/types";
 import { AppContext } from "../context";
-import { COLOR_PICKER } from "../utils/constants";
+import { COLOR_PICKER, lineDashReverseMapping } from "../utils/constants";
+import { getStorageData } from "../utils/utils";
 
 const Selector = ({ config, id }: PropsType) => {
   const [state, setState] = useContext(AppContext);
 
   const value = state[id as keyof StateType];
+
+  useEffect(() => {
+    if (state.selectedElement) {
+      const storage = getStorageData();
+      const index = storage.findIndex((el) => el.id === state.selectedElement);
+      let newValue;
+
+      if (id === "strokePattern") {
+        const dashValue = storage[index].dash.toString() as
+          | ""
+          | "10,15"
+          | "1,15";
+
+        newValue = lineDashReverseMapping[dashValue];
+      } else {
+        newValue = storage[index][id as SelectorOptions];
+      }
+
+      setState({ [id]: newValue });
+    }
+  }, [id, setState, state.selectedElement]);
 
   return (
     <div className="options" id={id}>

@@ -5,6 +5,7 @@ import Toggle from "./Toggle";
 import { ConfigRootType, ConfigType, SectionType } from "../types/types";
 import { useContext } from "react";
 import { AppContext } from "../context";
+import { getStorageData } from "../utils/utils";
 
 const sectionTypes: {
   selector: SectionType;
@@ -17,7 +18,15 @@ const sectionTypes: {
 };
 
 const SidePanel = ({ className = "" }: { className?: string }) => {
-  const [{ type }] = useContext(AppContext);
+  const [{ type, selectedElement }] = useContext(AppContext);
+
+  let selectedTool = type;
+
+  if (selectedElement) {
+    const storage = getStorageData();
+    const index = storage.findIndex((el) => el.id === selectedElement);
+    selectedTool = storage[index].type;
+  }
 
   return (
     <div className={`panel-wrapper ${className}`}>
@@ -41,7 +50,7 @@ const SidePanel = ({ className = "" }: { className?: string }) => {
         }) => {
           const Section = sectionTypes[type as ConfigRootType];
 
-          if (excludedOptions.includes(type)) return;
+          if (excludedOptions.includes(selectedTool)) return;
 
           return (
             <div className="section" key={id}>
