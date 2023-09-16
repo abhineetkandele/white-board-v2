@@ -2,6 +2,7 @@ import { PointerEvent, useContext, useRef } from "react";
 import { getCords, getStorageData, setStorageData } from "../utils/utils";
 import {
   detectPointLocation,
+  isPointerOnArrowCorner,
   isPointerOnRectangleCorner,
   isPointerOnReverseTriangleRectangleCorner,
 } from "../utils/detectPointLocation";
@@ -16,7 +17,7 @@ const {
   CIRCLE,
   DIAMOND,
   //   LINE,
-  //   ARROW,
+  ARROW,
   ADD_IMAGE,
   ADD_TEXT,
   //   PENCIL,
@@ -54,6 +55,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
         item.type === RECTANGLE ||
         item.type === CIRCLE ||
         item.type === DIAMOND ||
+        item.type === ARROW ||
         item.type === TRIANGLE
       ) {
         x1 = item.x1;
@@ -63,7 +65,8 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
         h = y2 - y1;
         w = x2 - x1;
-      } else if (item.type === ADD_IMAGE || item.type === ADD_TEXT) {
+      } else {
+        //if (item.type === ADD_IMAGE || item.type === ADD_TEXT) {
         x1 = item.x1;
         y1 = item.y1;
         h = item.height;
@@ -71,16 +74,6 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
         y2 = h + y1;
         x2 = w + x1;
-      } else {
-        const r = Math.sqrt(
-          Math.pow(item.x1 - item.x2, 2) + Math.pow(item.y1 - item.y2, 2)
-        );
-        x1 = item.x1 - r;
-        y1 = item.y1 - r;
-        w = r * 2;
-        h = r * 2;
-        x2 = x1 + w;
-        y2 = y1 + h;
       }
 
       const isNegativeWidth = w < 0;
@@ -151,6 +144,26 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
             yCord,
             ...selectedElementRect.current!
           );
+      } else if (item.type === ARROW) {
+        const { x1, x2, y1, y2 } = item;
+
+        if ((y1 > y2 && x2 > x1) || (x1 > x2 && y2 > y1)) {
+          cursorCornerCheck =
+            selectedElement &&
+            isPointerOnArrowCorner(
+              xCord,
+              yCord,
+              ...selectedElementRect.current!
+            );
+        } else {
+          cursorCornerCheck =
+            selectedElement &&
+            isPointerOnRectangleCorner(
+              xCord,
+              yCord,
+              ...selectedElementRect.current!
+            );
+        }
       } else {
         cursorCornerCheck =
           selectedElement &&
@@ -177,6 +190,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
           item.type === RECTANGLE ||
           item.type === CIRCLE ||
           item.type === DIAMOND ||
+          item.type === ARROW ||
           item.type === TRIANGLE
         ) {
           if (position) {
@@ -281,6 +295,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
         ];
         if (
           (item.type === TRIANGLE && x2 > xa) ||
+          item.type === ARROW ||
           (x2 > xa && y2 > ya) ||
           (height > 0 && width > 0)
         ) {

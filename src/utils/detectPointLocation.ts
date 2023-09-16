@@ -320,3 +320,23 @@ export const isPointerOnReverseTriangleRectangleCorner = (
   }
   return false;
 };
+
+export const isPointerOnArrowCorner = (
+  x: number,
+  y: number,
+  x1: number,
+  y1: number,
+  w: number,
+  h: number
+): { cursor: string; position: "tl" | "tr" | "bl" | "br" } | false => {
+  if (Math.abs(x - x1) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nesw-resize", position: "bl" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nesw-resize", position: "tr" };
+  } else if (Math.abs(x - x1 - w) <= 5 && Math.abs(y - y1) <= 5) {
+    return { cursor: "nwse-resize", position: "br" };
+  } else if (Math.abs(x - x1) <= 5 && Math.abs(y - y1 - h) <= 5) {
+    return { cursor: "nwse-resize", position: "tl" };
+  }
+  return false;
+};
