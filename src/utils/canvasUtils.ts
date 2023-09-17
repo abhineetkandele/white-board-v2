@@ -311,7 +311,7 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
         );
         break;
       case PENCIL:
-        ctx.moveTo(x, y);
+        ctx.moveTo(path[0][0], path[0][1]);
         path.forEach(([xPath, yPath]) => {
           ctx.lineTo(xPath, yPath);
         });

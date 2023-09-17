@@ -1,6 +1,7 @@
 import { PointerEvent, useContext, useRef } from "react";
 import { getCords, getStorageData, setStorageData } from "../utils/utils";
 import {
+  createEnclosingRectangle,
   detectPointLocation,
   isPointerOnArrowCorner,
   isPointerOnRectangleCorner,
@@ -20,7 +21,7 @@ const {
   ARROW,
   ADD_IMAGE,
   ADD_TEXT,
-  //   PENCIL,
+  PENCIL,
 } = TOP_PANEL_OPTIONS;
 
 const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
@@ -65,8 +66,16 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
         h = y2 - y1;
         w = x2 - x1;
+      } else if (item.type === PENCIL) {
+        const rectangle = createEnclosingRectangle(item.path);
+
+        x1 = rectangle.x1;
+        y1 = rectangle.y1;
+        x2 = rectangle.x2;
+        y2 = rectangle.y2;
+        w = rectangle.width;
+        h = rectangle.height;
       } else {
-        //if (item.type === ADD_IMAGE || item.type === ADD_TEXT) {
         x1 = item.x1;
         y1 = item.y1;
         h = item.height;
@@ -120,7 +129,12 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
   const onPointerMove = (e: PointerEvent<HTMLCanvasElement>) => {
     const { xCord, yCord } = getCords(e, false);
 
-    const elIndex = detectPointLocation(xCord, yCord, selectedElement);
+    const elIndex = detectPointLocation(
+      xCord,
+      yCord,
+      selectedElement,
+      selectedElementRect.current
+    );
     const editCanvas = editCanvasRef!.current!;
 
     if (elIndex >= 0) {
@@ -264,11 +278,64 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
             item.x1 += xDiff;
             item.y1 += yDiff;
           }
+        } else if (item.type === PENCIL) {
+          if (position) {
+            const { x1, y1, width, height } = createEnclosingRectangle(
+              item.path
+            );
+
+            let newWidth: number;
+            let newHeight: number;
+            let newX: number;
+            let newY: number;
+            if (position === "tl") {
+              newWidth = width - xDiff;
+              newHeight = height - yDiff;
+              newX = x1 + xDiff;
+              newY = y1 + yDiff;
+            } else if (position === "br") {
+              newWidth = width + xDiff;
+              newHeight = height + yDiff;
+              newX = x1;
+              newY = y1;
+            } else if (position === "bl") {
+              newWidth = width - xDiff;
+              newHeight = height + yDiff;
+              newX = x1 + xDiff;
+              newY = y1;
+            } else {
+              newWidth = width + xDiff;
+              newHeight = height - yDiff;
+              newX = x1;
+              newY = y1 + yDiff;
+            }
+
+            const widthScale = newWidth / width;
+            const heightScale = newHeight / height;
+            const xTranslation = newX - x1;
+            const yTranslation = newY - y1;
+
+            item.path = item.path.map(([x, y]) => [
+              x1 + (x - x1) * widthScale + xTranslation,
+              y1 + (y - y1) * heightScale + yTranslation,
+            ]);
+          } else {
+            item.path = item.path.map(([x, y]) => [x + xDiff, y + yDiff]);
+          }
         }
 
         const { x1, y1, x2, y2, height, width } = item;
         let xa, ya, xb, yb, w, h;
-        if (height && width) {
+        if (item.type === PENCIL) {
+          const rectangle = createEnclosingRectangle(item.path);
+
+          xa = rectangle.x1;
+          ya = rectangle.y1;
+          xb = rectangle.x2;
+          yb = rectangle.y2;
+          w = rectangle.width;
+          h = rectangle.height;
+        } else if (height && width) {
           xa = x1;
           ya = y1;
           h = height;
@@ -293,9 +360,11 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
           w + (isNegativeWidth ? -10 : 10),
           h + (isNegativeHeight ? -10 : 10),
         ];
+
         if (
           (item.type === TRIANGLE && x2 > xa) ||
           item.type === ARROW ||
+          item.type === PENCIL ||
           (x2 > xa && y2 > ya) ||
           (height > 0 && width > 0)
         ) {

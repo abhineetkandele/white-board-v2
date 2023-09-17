@@ -65,7 +65,7 @@ export const isPointOnLine = (
 
   const lineLength = distance(x1, y1, x2, y2);
 
-  return Math.abs(d1 + d2 - lineLength) < 10; //0.1;
+  return Math.abs(d1 + d2 - lineLength) < 1;
 };
 
 export const distance = (x1: number, y1: number, x2: number, y2: number) => {
@@ -339,4 +339,35 @@ export const isPointerOnArrowCorner = (
     return { cursor: "nwse-resize", position: "tl" };
   }
   return false;
+};
+
+export const createEnclosingRectangle = (coords: number[][]) => {
+  let minX = coords[0][0];
+  let minY = coords[0][1];
+  let maxX = coords[0][0];
+  let maxY = coords[0][1];
+
+  for (let i = 1; i < coords.length; i++) {
+    const x = coords[i][0];
+    const y = coords[i][1];
+
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  }
+
+  const width = maxX - minX;
+  const height = maxY - minY;
+
+  const rectangle = {
+    x1: minX,
+    y1: minY,
+    x2: maxX,
+    y2: maxY,
+    width: width,
+    height: height,
+  };
+
+  return rectangle;
 };
