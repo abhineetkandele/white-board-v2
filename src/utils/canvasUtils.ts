@@ -318,13 +318,13 @@ export const redrawShapes = async (ctx: CanvasRenderingContext2D) => {
         ctx.stroke();
         break;
       case LINE:
-        ctx.moveTo(x, y);
+        ctx.moveTo(path[0][0], path[0][1]);
         path.forEach(([xPath, yPath]) => {
           ctx.lineTo(xPath, yPath);
         });
         if (
-          Math.abs(x - path[path.length - 1][0]) < 10 &&
-          Math.abs(y - path[path.length - 1][1]) < 10
+          Math.abs(path[0][0] - path[path.length - 1][0]) < 10 &&
+          Math.abs(path[0][1] - path[path.length - 1][1]) < 10
         ) {
           ctx.closePath();
           ctx.fill();

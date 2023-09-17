@@ -17,7 +17,7 @@ const {
   TRIANGLE,
   CIRCLE,
   DIAMOND,
-  //   LINE,
+  LINE,
   ARROW,
   ADD_IMAGE,
   ADD_TEXT,
@@ -66,7 +66,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
         h = y2 - y1;
         w = x2 - x1;
-      } else if (item.type === PENCIL) {
+      } else if (item.type === PENCIL || item.type === LINE) {
         const rectangle = createEnclosingRectangle(item.path);
 
         x1 = rectangle.x1;
@@ -278,7 +278,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
             item.x1 += xDiff;
             item.y1 += yDiff;
           }
-        } else if (item.type === PENCIL) {
+        } else if (item.type === PENCIL || item.type === LINE) {
           if (position) {
             const { x1, y1, width, height } = createEnclosingRectangle(
               item.path
@@ -326,7 +326,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
 
         const { x1, y1, x2, y2, height, width } = item;
         let xa, ya, xb, yb, w, h;
-        if (item.type === PENCIL) {
+        if (item.type === PENCIL || item.type === LINE) {
           const rectangle = createEnclosingRectangle(item.path);
 
           xa = rectangle.x1;
@@ -365,6 +365,7 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
           (item.type === TRIANGLE && x2 > xa) ||
           item.type === ARROW ||
           item.type === PENCIL ||
+          item.type === LINE ||
           (x2 > xa && y2 > ya) ||
           (height > 0 && width > 0)
         ) {
