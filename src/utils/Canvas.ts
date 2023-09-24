@@ -15,10 +15,7 @@ export class Canvas {
   }
 
   static createContext() {
-    this.context = this.canvas.getContext("2d", {
-      willReadFrequently: true,
-      desynchronized: true,
-    })!;
+    this.context = this.canvas.getContext("2d", { desynchronized: true })!;
 
     this.context.fillStyle = "#ffffff";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
