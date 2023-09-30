@@ -15,12 +15,52 @@
   z-index: 3;
 }
 
-.top {
+.top-pane-wrapper {
+  position: absolute;
   margin-top: 1rem;
+  width: 100%;  
+}
+
+.top {
+  align-items: center;
   left: 50%;
   transform: translateX(-50%);
-  align-items: center;
   max-width: 90vw;
+}
+
+.download-container {
+  overflow: visible;
+  margin-top: 3.25rem;
+  right: 5%;
+}
+
+@media screen and (min-width: 700px) {
+  .download-container {
+    margin-top: 3rem;
+    right: calc(50% - 298px);
+  }
+}
+
+.download-container::after {
+  content: "";
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  background-color: #f5f5f5;
+  border-top: 1px solid #00000021;
+  border-left: 1px solid #00000021;
+}
+
+.download-options {
+  font-size: 1rem;
+  width: 4rem;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0.25rem 0;
+  cursor: pointer;
 }
 
 .side {

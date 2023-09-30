@@ -253,26 +253,28 @@ const EditBoard = ({ handleResize }: { handleResize: () => void }) => {
         } else if (item.type === ADD_TEXT) {
           if (position) {
             const aspectRatio = item.width / item.height;
+            const lineWidthRatio = item.width / item.lineWidth;
+
             if (position === "tl") {
+              item.lineWidth -= xDiff / lineWidthRatio;
               item.x1 += xDiff;
               item.y1 += yDiff;
               item.width -= xDiff;
               item.height = item.width / aspectRatio;
-              item.lineWidth -= xDiff / 20;
             } else if (position === "br") {
+              item.lineWidth += xDiff / lineWidthRatio;
               item.width += xDiff;
               item.height = item.width / aspectRatio;
-              item.lineWidth += xDiff / 20;
             } else if (position === "bl") {
+              item.lineWidth -= xDiff / lineWidthRatio;
               item.x1 += xDiff;
               item.width -= xDiff;
               item.height = item.width / aspectRatio;
-              item.lineWidth -= xDiff / 20;
             } else {
+              item.lineWidth += xDiff / lineWidthRatio;
               item.width += xDiff;
               item.height = item.width / aspectRatio;
               item.y1 += yDiff;
-              item.lineWidth += xDiff / 20;
             }
           } else {
             item.x1 += xDiff;

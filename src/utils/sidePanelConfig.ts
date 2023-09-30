@@ -3,7 +3,8 @@ import LineDashed from "../assets/line-dashed.svg";
 import LineDotted from "../assets/line-dotted.svg";
 import { COLOR_PICKER, TOP_PANEL_OPTIONS, TRANSPARENT } from "./constants";
 
-const { ERASER, PENCIL, ADD_TEXT, ARROW, SELECTION } = TOP_PANEL_OPTIONS;
+const { ERASER, PENCIL, ADD_TEXT, ARROW, SELECTION, DOWNLOAD } =
+  TOP_PANEL_OPTIONS;
 
 const icons = {
   Line,
@@ -37,7 +38,7 @@ export const sidePanelConfig = [
         color: COLOR_PICKER,
       },
     ],
-    excludedOptions: [ERASER, SELECTION],
+    excludedOptions: [ERASER, SELECTION, DOWNLOAD],
   },
   {
     id: "fillStyle",
@@ -64,7 +65,7 @@ export const sidePanelConfig = [
         color: COLOR_PICKER,
       },
     ],
-    excludedOptions: [ERASER, SELECTION, PENCIL, ADD_TEXT, ARROW],
+    excludedOptions: [ERASER, SELECTION, PENCIL, ADD_TEXT, ARROW, DOWNLOAD],
   },
   {
     id: "lineWidth",
@@ -72,7 +73,7 @@ export const sidePanelConfig = [
     type: "range",
     min: 1,
     max: 15,
-    excludedOptions: [ERASER, SELECTION],
+    excludedOptions: [ERASER, SELECTION, DOWNLOAD],
   },
   {
     id: "strokePattern",
@@ -92,7 +93,7 @@ export const sidePanelConfig = [
         title: "Dotted",
       },
     ],
-    excludedOptions: [ERASER, SELECTION, ADD_TEXT],
+    excludedOptions: [ERASER, SELECTION, ADD_TEXT, DOWNLOAD],
   },
   {
     id: "globalAlpha",
@@ -100,6 +101,6 @@ export const sidePanelConfig = [
     type: "range",
     min: 0,
     max: 100,
-    excludedOptions: [ERASER, SELECTION],
+    excludedOptions: [ERASER, SELECTION, DOWNLOAD],
   },
 ];

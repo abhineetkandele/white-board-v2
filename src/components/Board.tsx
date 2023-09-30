@@ -30,7 +30,6 @@ const {
   TRIANGLE,
   CIRCLE,
   DIAMOND,
-  DOWNLOAD,
   LINE,
   ARROW,
   ADD_IMAGE,
@@ -369,13 +368,6 @@ const Board = () => {
       resetStorage();
       resetSelection();
       resetState();
-    } else if (type === DOWNLOAD) {
-      const link = document.createElement("a");
-      link.download = `${Date.now()}.jpg`;
-      link.href = canvas.toDataURL();
-      link.click();
-      resetSelection();
-      link.remove();
     } else if (type === ADD_IMAGE) {
       input = document.createElement("input");
       input.type = "file";

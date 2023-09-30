@@ -33,11 +33,11 @@ If you are developing a production application, we recommend updating the config
 - Add theme options
 - Infinite canvas option - Using Mouse wheel
 - Add PWA
-- PNG and SVG download option
 - Canvas layering options
 - Undo Redo support for edit and resize shapes
+- Keyboard Support
+- Collab
 
 -> Issues
 
-- Drawn shapes not visible on some devices, but present when downloaded
 - Add Text is not resizing properly
