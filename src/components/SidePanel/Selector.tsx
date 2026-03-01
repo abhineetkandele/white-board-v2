@@ -1,38 +1,29 @@
 import { useContext, useEffect } from "react";
-import {
-  ConfigObjType,
-  PropsType,
-  SelectorOptions,
-  StateType,
-} from "../types/types";
-import { AppContext } from "../context";
-import { COLOR_PICKER, lineDashReverseMapping } from "../utils/constants";
-import { getStorageData } from "../utils/utils";
+import { AppContext } from "../../context";
+import { COLOR_PICKER, LINE_DASH_REVERSE } from "../../constants/styles";
+import { StorageService } from "../../services";
+import type { ConfigObjType, PropsType, SelectorOptions, StateType } from "../../types";
 
 const Selector = ({ config, id }: PropsType) => {
   const [state, setState] = useContext(AppContext);
-
   const value = state[id as keyof StateType];
 
   useEffect(() => {
-    if (state.selectedElement) {
-      const storage = getStorageData();
-      const index = storage.findIndex((el) => el.id === state.selectedElement);
-      let newValue;
+    if (!state.selectedElement) return;
 
-      if (id === "strokePattern") {
-        const dashValue = storage[index].dash.toString() as
-          | ""
-          | "10,15"
-          | "1,15";
+    const storage = StorageService.getElements();
+    const index = storage.findIndex((el) => el.id === state.selectedElement);
+    if (index < 0) return;
 
-        newValue = lineDashReverseMapping[dashValue];
-      } else {
-        newValue = storage[index][id as SelectorOptions];
-      }
-
-      setState({ [id]: newValue });
+    let newValue;
+    if (id === "strokePattern") {
+      const dashValue = storage[index].dash.toString() as "" | "10,15" | "1,15";
+      newValue = LINE_DASH_REVERSE[dashValue];
+    } else {
+      newValue = storage[index][id as SelectorOptions];
     }
+
+    setState({ [id]: newValue });
   }, [id, setState, state.selectedElement]);
 
   return (
@@ -63,7 +54,9 @@ const Selector = ({ config, id }: PropsType) => {
               onClick={() => setState({ [id]: color })}
             />
           );
-        } else if (icon) {
+        }
+
+        if (icon) {
           return (
             <img
               key={title}
@@ -76,9 +69,9 @@ const Selector = ({ config, id }: PropsType) => {
               onClick={() => setState({ [id]: title })}
             />
           );
-        } else {
-          return <div className="seprator verticle" key="" />;
         }
+
+        return <div className="seprator verticle" key="" />;
       })}
     </div>
   );

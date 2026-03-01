@@ -5,11 +5,12 @@ import {
   useEffect,
   useState,
 } from "react";
-import { StateType, Store } from "./types/types";
-import { TOP_PANEL_OPTIONS, TRANSPARENT } from "./utils/constants";
+import type { StateType, Store } from "./types";
+import { TOOLS } from "./constants";
+import { TRANSPARENT } from "./constants/styles";
 
-const appState: StateType = {
-  type: TOP_PANEL_OPTIONS.PENCIL,
+const DEFAULT_STATE: StateType = {
+  type: TOOLS.PENCIL,
   strokeStyle: "#000000",
   fillStyle: TRANSPARENT,
   lineWidth: 5,
@@ -18,41 +19,42 @@ const appState: StateType = {
   selectedElement: "",
 };
 
+const STORAGE_KEY = "state";
+
 const getInitialState = (): StateType => {
-  const state = localStorage.getItem("state");
+  const raw = localStorage.getItem(STORAGE_KEY);
 
-  if (state) {
-    const parsedState = JSON.parse(state);
-
-    return {
-      ...parsedState,
-      selectedElement: "",
-    };
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    return { ...parsed, selectedElement: "" };
   }
 
-  return appState;
+  return DEFAULT_STATE;
 };
 
 const useStoreData = (): Store => {
   const [state, setState] = useState(getInitialState);
 
-  const modifiedSetState = useCallback((value: Partial<StateType>) => {
-    setState!((prevState) => ({ ...prevState, ...value }));
+  const updateState = useCallback((value: Partial<StateType>) => {
+    setState((prev) => ({ ...prev, ...value }));
   }, []);
 
   const resetState = useCallback(() => {
-    setState!(appState);
+    setState(DEFAULT_STATE);
   }, []);
 
-  useEffect(
-    () => localStorage.setItem("state", JSON.stringify(state)),
-    [state]
-  );
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
 
-  return [state, modifiedSetState, resetState];
+  return [state, updateState, resetState];
 };
 
-export const AppContext = createContext<Store>([appState, () => {}, () => {}]);
+export const AppContext = createContext<Store>([
+  DEFAULT_STATE,
+  () => {},
+  () => {},
+]);
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
   return (

@@ -1,10 +1,9 @@
 import { useContext } from "react";
-import { PropsType, StateType } from "../types/types";
-import { AppContext } from "../context";
+import { AppContext } from "../../context";
+import type { PropsType, StateType } from "../../types";
 
 const Toggle = ({ id }: PropsType) => {
   const [state, setState] = useContext(AppContext);
-
   const value = state[id as keyof StateType];
 
   return (

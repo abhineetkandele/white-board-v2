@@ -1,50 +1,44 @@
 import isEqual from "lodash.isequal";
-import { Data } from "./Data";
-import { getStorageData, setStorageData } from "./utils";
-import { TOP_PANEL_OPTIONS } from "./constants";
+import { TOOLS } from "../constants";
+import { HistoryService, StorageService } from "../services";
 
-const { LINE } = TOP_PANEL_OPTIONS;
+const { LINE } = TOOLS;
 
-export const handleUndo = (handleResize: () => void) => {
-  const item = Data.deleteHistoryItem();
-
+export const handleUndo = (redraw: () => void): void => {
+  const item = HistoryService.popHistory();
   if (!item) return;
 
-  const storageData = getStorageData().reverse();
-  const index = storageData.findIndex(
-    (storageItem) => storageItem.id === item.id
-  );
+  const data = StorageService.getElements().reverse();
+  const index = data.findIndex((el) => el.id === item.id);
 
   if (index >= 0) {
-    if (item.type !== LINE && isEqual(item, storageData[index])) {
-      storageData.splice(index, 1);
+    if (item.type !== LINE && isEqual(item, data[index])) {
+      data.splice(index, 1);
     } else {
-      storageData[index] = item;
+      data[index] = item;
     }
   } else {
-    storageData.push(item);
+    data.push(item);
   }
 
-  setStorageData(storageData.reverse());
-  handleResize();
+  StorageService.setElements(data.reverse());
+  redraw();
 };
 
-export const handleRedo = (handleResize: () => void) => {
-  const item = Data.deleteRedoItem();
-
+export const handleRedo = (redraw: () => void): void => {
+  const item = HistoryService.popRedo();
   if (!item) return;
 
-  const storageData = getStorageData().reverse();
-  const index = storageData.findIndex(
-    (storageItem) => storageItem.id === item.id
-  );
-  storageData.reverse();
+  const data = StorageService.getElements().reverse();
+  const index = data.findIndex((el) => el.id === item.id);
+  data.reverse();
+
   if (index >= 0) {
-    storageData[index] = item;
+    data[index] = item;
   } else {
-    storageData.push(item);
+    data.push(item);
   }
 
-  setStorageData(storageData);
-  handleResize();
+  StorageService.setElements(data);
+  redraw();
 };

@@ -1,27 +1,3 @@
-export type ConfigRootType = "selector" | "toggle" | "range";
-
-export type ConfigType =
-  | { color?: string }
-  | { type?: string }
-  | { icon?: string }
-  | object;
-
-export type ConfigObjType = {
-  color?: string;
-  type?: string;
-  icon?: string;
-  title?: string;
-};
-
-export type PropsType = {
-  config?: ConfigType[];
-  id: string;
-  min?: number;
-  max?: number;
-};
-
-export type SectionType = (props: PropsType) => JSX.Element;
-
 export type StrokePattern = "Solid" | "Dashed" | "Dotted";
 
 export type StateType = {
@@ -37,10 +13,13 @@ export type StateType = {
 export type Store = [
   StateType,
   (value: Partial<StateType>) => void,
-  () => void
+  () => void,
 ];
 
-export type Coordinates = { x: number; y: number };
+export type Coordinates = {
+  x: number;
+  y: number;
+};
 
 export type BoardElement = {
   id: string;
@@ -62,6 +41,47 @@ export type BoardElement = {
 };
 
 export type RectPointsTuple = [number, number, number, number];
+
+export type ResizeCorner = "tl" | "tr" | "bl" | "br";
+
+export type CornerHit = {
+  cursor: string;
+  position: ResizeCorner;
+};
+
+export type BoundingRect = {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  width: number;
+  height: number;
+};
+
+// Side panel types
+export type ConfigRootType = "selector" | "toggle" | "range";
+
+export type ConfigObjType = {
+  color?: string;
+  type?: string;
+  icon?: string;
+  title?: string;
+};
+
+export type ConfigType =
+  | { color?: string }
+  | { type?: string }
+  | { icon?: string }
+  | object;
+
+export type PropsType = {
+  config?: ConfigType[];
+  id: string;
+  min?: number;
+  max?: number;
+};
+
+export type SectionType = (props: PropsType) => JSX.Element;
 
 export type RangeOptions = "lineWidth" | "globalAlpha";
 

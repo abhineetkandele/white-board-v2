@@ -1,29 +1,19 @@
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { AppContext } from "../context";
+import { TOOLS } from "../constants";
+import { LINE_DASH } from "../constants/styles";
+import { CanvasService, IndexedDBService, StorageService } from "../services";
 import {
   drawArrow,
   drawCircle,
   drawDiamond,
   drawRectangle,
-  drawShape,
   drawTriangle,
-  handleAddText,
+  fillAndStroke,
+  createTextInput,
   redrawCanvas,
-} from "../utils/canvasUtils";
-import {
-  getCords,
-  getStorageData,
-  handleEraser,
-  loadImage,
-  resetStorage,
-  setStorageData,
-  storeDataObj,
-} from "../utils/utils";
-import { IndexDB } from "../utils/IndexDB";
-import { Canvas } from "../utils/Canvas";
-import UndoRedo from "./UndoRedo";
-import { TOP_PANEL_OPTIONS, lineDash } from "../utils/constants";
-import EditBoard from "./EditBoard";
+} from "../drawing";
+import { getPointerCoords, handleEraser, loadImage } from "../utils";
 
 const {
   RECTANGLE,
@@ -38,9 +28,9 @@ const {
   ERASER,
   CLEAR,
   SELECTION,
-} = TOP_PANEL_OPTIONS;
+} = TOOLS;
 
-const Board = () => {
+export const useBoard = () => {
   const [
     {
       type,
@@ -67,19 +57,19 @@ const Board = () => {
     fileId: string;
   }>();
   const cursorCords = useRef<number[][]>([]);
-  const countRef = useRef<number>(0);
+  const lineClickCount = useRef<number>(0);
+
+  // ─── Pointer move ─────────────────────────────────────────────────
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
-      const { xCord, yCord } = getCords(e);
+      const { xCord, yCord } = getPointerCoords(e);
+      const ctx = CanvasService.getContext();
 
-      const ctx = Canvas.getContext();
-
+      // Image preview follows cursor
       if (type === ADD_IMAGE && imageDataRef.current) {
         ctx.putImageData(snapshotRef.current!, 0, 0);
-
         const { img, width, height } = imageDataRef.current;
-
         if (img) {
           ctx.globalAlpha = globalAlpha / 100;
           ctx.drawImage(img, xCord, yCord, width, height);
@@ -88,10 +78,10 @@ const Board = () => {
       }
 
       if (!isDrawing.current) return;
-
       if (type !== ERASER && type !== SELECTION) {
         ctx.putImageData(snapshotRef.current!, 0, 0);
       }
+
       const { x, y } = startingCords.current!;
 
       switch (type) {
@@ -110,52 +100,50 @@ const Board = () => {
         case RECTANGLE:
           drawRectangle(ctx, x, y, xCord, yCord);
           break;
-
         case CIRCLE:
           drawCircle(ctx, x, y, xCord, yCord);
-          drawShape(ctx);
+          fillAndStroke(ctx);
           break;
-
         case DIAMOND:
           drawDiamond(ctx, x, y, xCord, yCord);
-          drawShape(ctx);
+          fillAndStroke(ctx);
           break;
-
         case TRIANGLE:
           drawTriangle(ctx, x, y, xCord, yCord);
-          drawShape(ctx);
+          fillAndStroke(ctx);
           break;
-
         case ARROW:
           drawArrow(ctx, x, y, xCord, yCord);
           break;
       }
     },
-    [globalAlpha, type]
+    [globalAlpha, type] // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  // ─── Pointer down ─────────────────────────────────────────────────
 
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
       e.stopPropagation();
-      const { xCord, yCord } = getCords(e);
-
+      const { xCord, yCord } = getPointerCoords(e);
       isDrawing.current = true;
 
-      const canvas = Canvas.getCanvas();
-      const ctx = Canvas.getContext();
+      const canvas = CanvasService.getCanvas();
+      const ctx = CanvasService.getContext();
 
+      // Text tool
       if (type === ADD_TEXT) {
-        handleAddText(
+        createTextInput(
           xCord,
           yCord,
           lineWidth,
           globalAlpha,
           strokeStyle,
           ctx,
-          (text, width, height) => {
-            isDrawing!.current = false;
+          (text, w, h) => {
+            isDrawing.current = false;
             if (text) {
-              storeDataObj(
+              StorageService.storeElement(
                 type,
                 xCord,
                 yCord,
@@ -164,14 +152,15 @@ const Board = () => {
                 [],
                 false,
                 text,
-                width,
-                height
+                w,
+                h
               );
             }
           }
         );
       }
 
+      // Apply current styles
       ctx.fillStyle = fillStyle;
       ctx.strokeStyle = strokeStyle;
       ctx.lineWidth = lineWidth;
@@ -179,15 +168,13 @@ const Board = () => {
       ctx.lineJoin = "round";
       ctx.globalAlpha = globalAlpha / 100;
       ctx.globalCompositeOperation = "source-over";
+      ctx.setLineDash(LINE_DASH[strokePattern]);
 
-      ctx.setLineDash(lineDash[strokePattern]);
-
+      // Image placement
       if (type === ADD_IMAGE && imageDataRef.current) {
         const { img, width, height, fileId } = imageDataRef.current;
-
         ctx.drawImage(img, xCord, yCord, width * 3, height * 3);
-
-        storeDataObj(
+        StorageService.storeElement(
           type,
           xCord,
           yCord,
@@ -200,52 +187,56 @@ const Board = () => {
           height * 3,
           fileId
         );
-
-        imageDataRef.current = {
-          img: imageDataRef.current!.img,
-          width: 0,
-          height: 0,
-          fileId: "",
-        };
+        imageDataRef.current = { img, width: 0, height: 0, fileId: "" };
       }
 
+      // Begin path (unless continuing a line)
       if (type !== LINE || isNewLine.current) {
-        startingCords.current = {
-          x: xCord,
-          y: yCord,
-        };
+        startingCords.current = { x: xCord, y: yCord };
         ctx.beginPath();
       }
 
+      // Line tool: multi-click segments
       if (type === LINE) {
-        countRef.current += 1;
-
+        lineClickCount.current += 1;
         ctx.lineTo(xCord, yCord);
         cursorCords.current.push([xCord, yCord]);
         ctx.stroke();
         ctx.save();
 
         const { x = Infinity, y = Infinity } = startingCords.current || {};
-        if (!isNewLine.current) {
-          storeDataObj(type, x, y, xCord, yCord, cursorCords.current, true);
-        } else {
-          storeDataObj(type, x, y, xCord, yCord, cursorCords.current);
-        }
+        StorageService.storeElement(
+          type,
+          x,
+          y,
+          xCord,
+          yCord,
+          cursorCords.current,
+          !isNewLine.current
+        );
         isNewLine.current = false;
 
+        // Close polygon if clicking near start
         if (
           Math.abs(x - xCord) < 10 &&
           Math.abs(y - yCord) < 10 &&
-          countRef.current > 2
+          lineClickCount.current > 2
         ) {
           ctx.closePath();
           cursorCords.current.push([x, y]);
           ctx.fill();
           ctx.stroke();
-          countRef.current = 0;
+          lineClickCount.current = 0;
           isNewLine.current = true;
-
-          storeDataObj(type, x, y, xCord, yCord, cursorCords.current, true);
+          StorageService.storeElement(
+            type,
+            x,
+            y,
+            xCord,
+            yCord,
+            cursorCords.current,
+            true
+          );
           cursorCords.current = [];
         }
       } else {
@@ -266,23 +257,22 @@ const Board = () => {
     ]
   );
 
+  // ─── Pointer up ───────────────────────────────────────────────────
+
   const onPointerUp = useCallback(
     (e: PointerEvent) => {
-      const { xCord, yCord } = getCords(e);
-
+      const { xCord, yCord } = getPointerCoords(e);
       const { x, y } = startingCords.current!;
 
-      const captureOnUp = [TRIANGLE, ARROW, PENCIL];
-
+      // Shapes that normalize coordinates on up
       if (
         (type === RECTANGLE || type === CIRCLE || type === DIAMOND) &&
         (x !== xCord || y !== yCord)
       ) {
-        let x1 = x;
-        let y1 = y;
-        let x2 = xCord;
-        let y2 = yCord;
-
+        let x1 = x,
+          y1 = y,
+          x2 = xCord,
+          y2 = yCord;
         if (x1 > x2 && y1 < y2) {
           x1 = xCord;
           x2 = x;
@@ -295,28 +285,36 @@ const Board = () => {
           x2 = x;
           y2 = y;
         }
-
-        storeDataObj(type, x1, y1, x2, y2, cursorCords.current);
-
+        StorageService.storeElement(type, x1, y1, x2, y2, cursorCords.current);
         cursorCords.current = [];
       } else if (type === TRIANGLE && (x !== xCord || y !== yCord)) {
-        let x1 = x;
-        let x2 = xCord;
-
+        let x1 = x,
+          x2 = xCord;
         if (x1 > x2) {
           x1 = xCord;
           x2 = x;
         }
-
-        storeDataObj(type, x1, y, x2, yCord, cursorCords.current);
-
+        StorageService.storeElement(
+          type,
+          x1,
+          y,
+          x2,
+          yCord,
+          cursorCords.current
+        );
         cursorCords.current = [];
       } else if (
-        captureOnUp.includes(type) &&
+        ([TRIANGLE, ARROW, PENCIL] as string[]).includes(type) &&
         (type === PENCIL || x !== xCord || y !== yCord)
       ) {
-        storeDataObj(type, x, y, xCord, yCord, cursorCords.current);
-
+        StorageService.storeElement(
+          type,
+          x,
+          y,
+          xCord,
+          yCord,
+          cursorCords.current
+        );
         cursorCords.current = [];
       }
 
@@ -329,13 +327,19 @@ const Board = () => {
     [type, setState]
   );
 
+  // ─── Resize / redraw ─────────────────────────────────────────────
+
+  const handleResize = useCallback(() => {
+    redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
+  }, [onPointerDown, onPointerMove, onPointerUp]);
+
+  // ─── Tool-change side effects ─────────────────────────────────────
+
   useEffect(() => {
     startingCords.current = undefined;
 
-    const canvas = Canvas.getCanvas();
-
+    const canvas = CanvasService.getCanvas();
     let input: HTMLInputElement;
-
     const resetSelection = () => setState({ type: PENCIL });
 
     const handleLoadedImage = (
@@ -345,27 +349,20 @@ const Board = () => {
       dataUrl: string,
       fileId: string
     ) => {
-      imageDataRef.current = {
-        img,
-        width,
-        height,
-        fileId,
-      };
-      snapshotRef.current = Canvas.getContext().getImageData(
+      imageDataRef.current = { img, width, height, fileId };
+      snapshotRef.current = CanvasService.getContext().getImageData(
         0,
         0,
         canvas.width,
         canvas.height
       );
-      IndexDB.saveFileToDB({ dataUrl, fileId });
+      IndexedDBService.saveFile({ dataUrl, fileId });
     };
 
-    const handleInputChange = (e: Event) => {
-      loadImage(e, handleLoadedImage);
-    };
+    const handleInputChange = (e: Event) => loadImage(e, handleLoadedImage);
 
     if (type === CLEAR) {
-      resetStorage();
+      StorageService.clear();
       resetSelection();
       resetState();
     } else if (type === ADD_IMAGE) {
@@ -373,7 +370,6 @@ const Board = () => {
       input.type = "file";
       input.accept = "image/*";
       input.click();
-
       input.addEventListener("change", handleInputChange);
       input.addEventListener("cancel", resetSelection);
       input.remove();
@@ -385,44 +381,41 @@ const Board = () => {
     };
   }, [type, setState, resetState]);
 
-  const handleResize = useCallback(() => {
-    redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
-  }, [onPointerDown, onPointerMove, onPointerUp]);
+  // ─── IndexedDB init + window resize ───────────────────────────────
 
   useEffect(() => {
-    let idbDatabaseRef: IDBDatabase;
+    let idbRef: IDBDatabase;
     const handleSuccess = (e: Event) => {
-      idbDatabaseRef = (e.target as IDBOpenDBRequest).result;
+      idbRef = (e.target as IDBOpenDBRequest).result;
       handleResize();
     };
 
-    IndexDB.getRequest(handleSuccess);
-
+    IndexedDBService.open(handleSuccess);
     window.addEventListener("resize", handleResize);
 
     return () => {
-      idbDatabaseRef?.close();
+      idbRef?.close();
       window.removeEventListener("resize", handleResize);
     };
   }, [handleResize]);
 
+  // ─── Live-update selected element styles ──────────────────────────
+
   useEffect(() => {
-    if (selectedElement) {
-      const storage = getStorageData();
-      const index = storage.findIndex((el) => el.id === selectedElement);
+    if (!selectedElement) return;
 
-      if (index >= 0) {
-        const item = storage[index];
-        item.strokeStyle = strokeStyle;
-        item.fillStyle = fillStyle;
-        item.lineWidth = lineWidth;
-        item.globalAlpha = globalAlpha / 100;
-        item.dash = lineDash[strokePattern];
+    const storage = StorageService.getElements();
+    const index = storage.findIndex((el) => el.id === selectedElement);
+    if (index < 0) return;
 
-        storage[index] = item;
-        setStorageData(storage);
-      }
-    }
+    const item = storage[index];
+    item.strokeStyle = strokeStyle;
+    item.fillStyle = fillStyle;
+    item.lineWidth = lineWidth;
+    item.globalAlpha = globalAlpha / 100;
+    item.dash = LINE_DASH[strokePattern];
+    storage[index] = item;
+    StorageService.setElements(storage);
   }, [
     strokeStyle,
     fillStyle,
@@ -432,13 +425,5 @@ const Board = () => {
     selectedElement,
   ]);
 
-  return (
-    <>
-      <div id="board" ref={boardRef} />
-      {type === SELECTION && <EditBoard handleResize={handleResize} />}
-      <UndoRedo handleResize={handleResize} />
-    </>
-  );
+  return { boardRef, type, handleResize };
 };
-
-export default Board;

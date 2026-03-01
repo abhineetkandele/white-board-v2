@@ -1,29 +1,31 @@
 import { useContext, useEffect, useState } from "react";
-import { panelIcons } from "../utils/topPanelConfig";
-import { AppContext } from "../context";
-import { TOP_PANEL_OPTIONS } from "../utils/constants";
-import { Canvas } from "../utils/Canvas";
+import { AppContext } from "../../context";
+import { TOOLS } from "../../constants";
+import { CanvasService } from "../../services";
+import { topPanelIcons } from "../../config";
 
 const TopPanel = () => {
   const [{ type }, setState] = useContext(AppContext);
-  const [downloadType, setDownloadType] = useState<string>("");
+  const [downloadType, setDownloadType] = useState("");
 
   useEffect(() => {
-    if (downloadType) {
-      const canvas = Canvas.getCanvas();
-      const link = document.createElement("a");
-      link.download = `${Date.now()}.${downloadType}`;
-      link.href = canvas.toDataURL(`image/${downloadType}`);
-      link.click();
-      setState({ type: TOP_PANEL_OPTIONS.PENCIL });
-      link.remove();
-    }
+    if (!downloadType) return;
+
+    const canvas = CanvasService.getCanvas();
+    const link = document.createElement("a");
+    link.download = `${Date.now()}.${downloadType}`;
+    link.href = canvas.toDataURL(`image/${downloadType}`);
+    link.click();
+    link.remove();
+
+    setState({ type: TOOLS.PENCIL });
+    setDownloadType("");
   }, [downloadType, setState]);
 
   return (
     <div className="top-pane-wrapper">
       <div className="panel-container top">
-        {panelIcons.map(({ src, title, key }) => {
+        {topPanelIcons.map(({ src, title, key }) => {
           if (!src) return <div className="seprator verticle" key={key} />;
 
           return (
@@ -40,11 +42,12 @@ const TopPanel = () => {
           );
         })}
       </div>
-      {type === TOP_PANEL_OPTIONS.DOWNLOAD && (
+
+      {type === TOOLS.DOWNLOAD && (
         <div className="panel-container download-container">
           <button
             className="download-options"
-            title={"webp"}
+            title="webp"
             type="button"
             onClick={() => setDownloadType("webp")}
           >
@@ -52,7 +55,7 @@ const TopPanel = () => {
           </button>
           <button
             className="download-options"
-            title={"png"}
+            title="png"
             type="button"
             onClick={() => setDownloadType("png")}
           >

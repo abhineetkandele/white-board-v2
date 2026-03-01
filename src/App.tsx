@@ -5,7 +5,7 @@ import TopPanel from "./components/TopPanel";
 import { ContextProvider } from "./context";
 import useMobile from "./hooks/useMobile";
 
-function App() {
+const App = () => {
   const isMobile = useMobile();
 
   return (
@@ -15,6 +15,6 @@ function App() {
       <Board />
     </ContextProvider>
   );
-}
+};
 
 export default App;

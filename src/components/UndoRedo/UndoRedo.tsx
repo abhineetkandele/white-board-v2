@@ -1,18 +1,22 @@
-import Undo from "../assets/undo.svg";
-import Redo from "../assets/redo.svg";
-import Settings from "../assets/settings.svg";
-import useMobile from "../hooks/useMobile";
-import SidePanel from "./SidePanel";
 import { useState } from "react";
-import { handleRedo, handleUndo } from "../utils/undoRedo";
+import Undo from "../../assets/undo.svg";
+import Redo from "../../assets/redo.svg";
+import Settings from "../../assets/settings.svg";
+import useMobile from "../../hooks/useMobile";
+import SidePanel from "../SidePanel";
+import { handleRedo, handleUndo } from "../../utils/undoRedo";
 
-const UndoRedo = ({ handleResize }: { handleResize: () => void }) => {
+type UndoRedoProps = {
+  handleResize: () => void;
+};
+
+const UndoRedo = ({ handleResize }: UndoRedoProps) => {
   const isMobile = useMobile();
   const [showSidePanel, setShowSidePanel] = useState(false);
 
   const commonProps = {
     className: "tools",
-    role: "button",
+    role: "button" as const,
     tabIndex: 0,
   };
 
@@ -25,7 +29,7 @@ const UndoRedo = ({ handleResize }: { handleResize: () => void }) => {
             src={Settings}
             alt="Settings"
             title="Settings"
-            onClick={() => setShowSidePanel(!showSidePanel)}
+            onClick={() => setShowSidePanel((prev) => !prev)}
             {...commonProps}
           />
         )}
