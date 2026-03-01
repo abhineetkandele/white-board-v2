@@ -1,43 +1,75 @@
-# React + TypeScript + Vite
+# White Board v2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+White Board v2 is a browser-based drawing canvas built with React, TypeScript, and Vite. It supports shape drawing, freehand paths, text, image placement, selection/editing, and local persistence with undo/redo.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Drawing tools: Pencil, Line, Rectangle, Circle, Triangle, Diamond, Arrow, Eraser, Selection, Text, Image, and Clear.
+- Style controls: Stroke color, fill color, stroke pattern, line width, and opacity.
+- Editing: Select elements, drag, and resize with shape-specific transform logic.
+- Export: Download canvas as PNG or WEBP.
+- Persistence:
+  - UI state in localStorage (`state` key).
+  - Board elements in localStorage (`data` key).
+  - Image binaries in IndexedDB (`white-board` database, `files` object store).
+- Undo/redo for drawing changes.
 
-## Expanding the ESLint configuration
+## Documentation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Architecture and runtime flow: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Complete code reference (all files in `src/`): [docs/CODE_REFERENCE.md](docs/CODE_REFERENCE.md)
 
-- Configure the top-level `parserOptions` property like this:
+## Tech Stack
 
-```js
-   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-   },
+- React 18
+- TypeScript 5
+- Vite 4
+- IndexedDB + localStorage for browser-side persistence
+
+## Development
+
+Prerequisites:
+
+- Node.js 18+
+- npm 9+
+
+Install and run:
+
+```bash
+npm install
+npm run dev
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Build and preview:
 
-## TODO
+```bash
+npm run build
+npm run preview
+```
 
--> New Features
+Lint:
 
-- Add theme options
-- Infinite canvas option - Using Mouse wheel
-- Add PWA
-- Canvas layering options
-- Undo Redo support for edit and resize shapes
-- Keyboard Support
-- Collab
+```bash
+npm run lint
+```
 
--> Issues
+## Project Structure
 
-- Add Text is not resizing properly
+```text
+src/
+   components/    # UI components (board, panels, undo/redo controls)
+   config/        # Declarative tool and side panel configuration
+   constants/     # Tool names and style constants
+   drawing/       # Pure drawing + redraw pipeline
+   hooks/         # Controller hooks for board and selection logic
+   services/      # Canvas, storage, history, and IndexedDB services
+   types/         # Shared type contracts
+   utils/         # Geometry, coordinate, eraser, file, and undo/redo helpers
+```
+
+## Current Limitations
+
+- Persistence schemas are not versioned/migrated.
+- IndexedDB and localStorage error handling is minimal.
+- Keyboard accessibility is partial for icon-only controls.
+- No backend or collaboration support.
