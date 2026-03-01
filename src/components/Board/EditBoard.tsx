@@ -5,7 +5,7 @@ type EditBoardProps = {
 };
 
 const EditBoard = ({ handleResize }: EditBoardProps) => {
-  const { editCanvasRef, onPointerDown, onPointerUp, onPointerMove } =
+  const { editCanvasRef, onPointerDown, onPointerUp, onPointerMove, onWheel } =
     useEditBoard(handleResize);
 
   return (
@@ -15,6 +15,8 @@ const EditBoard = ({ handleResize }: EditBoardProps) => {
       onPointerUp={onPointerUp}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
+      onWheel={onWheel}
+      onContextMenu={(e) => e.preventDefault()}
     />
   );
 };

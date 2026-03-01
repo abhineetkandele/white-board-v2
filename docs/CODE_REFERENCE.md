@@ -314,7 +314,8 @@ These SVG files are icon resources used by toolbar and control components.
   - `redrawAllElements`
   - `redrawCanvas`
 - Key logic:
-  - Clears canvas and redraws each element by type.
+  - Resets/clears canvas and reapplies viewport transform.
+  - Redraws each element by type in world coordinates.
   - Handles image redraw via in-memory cache and IndexedDB fallback.
 - Interactions:
   - Uses `CanvasService`, `StorageService`, `HistoryService`, `IndexedDBService`, and drawing primitives.
@@ -342,6 +343,10 @@ These SVG files are icon resources used by toolbar and control components.
 - Key logic:
   - Initializes main canvas and event handlers.
   - Processes tool-specific pointer down/move/up behavior.
+  - Supports viewport navigation:
+    - Wheel pan
+    - `Ctrl/Cmd + wheel` zoom-at-cursor
+    - Drag-pan via middle/right click or `Shift + drag`
   - Handles text creation workflow.
   - Handles image file load, placement preview, and commit.
   - Persists elements through `StorageService`.
@@ -364,6 +369,7 @@ These SVG files are icon resources used by toolbar and control components.
   - Detects target element on overlay pointer down.
   - Computes bounding rect + resize corner hit.
   - Applies per-element-type transform during pointer move.
+  - Supports pan/zoom interactions directly on overlay canvas in Selection mode.
   - Updates storage and redraws board.
   - Draws selection rectangle/handles.
 
@@ -376,9 +382,12 @@ These SVG files are icon resources used by toolbar and control components.
   - `CanvasService`
 - Key logic:
   - Creates canvas and 2D context.
-  - Scales by device pixel ratio.
+  - Manages DPI scaling with device pixel ratio.
+  - Stores viewport camera state (`scale`, `offsetX`, `offsetY`).
+  - Exposes world/screen coordinate conversion helpers.
+  - Applies viewport transform and supports pan/zoom operations.
   - Stores and exposes static canvas/context references.
-  - Registers pointer handlers.
+  - Registers pointer + wheel handlers.
 
 ### `src/services/StorageService.ts`
 
@@ -433,7 +442,8 @@ These SVG files are icon resources used by toolbar and control components.
   - `getPointerCoords`
   - `hex2rgb`
 - Key logic:
-  - Converts pointer events to canvas-relative coordinates.
+  - Converts pointer events to world or screen coordinates.
+  - Uses current viewport transform for world-space conversion.
   - Converts hex color string to RGB components.
 
 ### `src/utils/editHelpers.ts`
@@ -444,6 +454,7 @@ These SVG files are icon resources used by toolbar and control components.
   - `drawSelectionBox`
 - Key logic:
   - Recreates overlay canvas context dimensions/scaling.
+  - Applies shared viewport transform so overlay alignment matches main canvas.
   - Draws selection rectangle and corner handles.
 
 ### `src/utils/eraser.ts`

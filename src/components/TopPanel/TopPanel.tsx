@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context";
 import { TOOLS } from "../../constants";
 import { CanvasService } from "../../services";
+import { exportBoardToImage } from "../../drawing/redraw";
 import { topPanelIcons } from "../../config";
 
 const TopPanel = () => {
@@ -10,16 +11,16 @@ const TopPanel = () => {
 
   useEffect(() => {
     if (!downloadType) return;
-
-    const canvas = CanvasService.getCanvas();
-    const link = document.createElement("a");
-    link.download = `${Date.now()}.${downloadType}`;
-    link.href = canvas.toDataURL(`image/${downloadType}`);
-    link.click();
-    link.remove();
-
-    setState({ type: TOOLS.PENCIL });
-    setDownloadType("");
+    (async () => {
+      const canvas = await exportBoardToImage(downloadType as "png" | "webp");
+      const link = document.createElement("a");
+      link.download = `${Date.now()}.${downloadType}`;
+      link.href = canvas.toDataURL(`image/${downloadType}`);
+      link.click();
+      link.remove();
+      setState({ type: TOOLS.PENCIL });
+      setDownloadType("");
+    })();
   }, [downloadType, setState]);
 
   return (

@@ -1,4 +1,5 @@
 import React from "react";
+import { CanvasService } from "../services";
 
 /**
  * Extracts pointer coordinates from a PointerEvent.
@@ -7,9 +8,18 @@ import React from "react";
 export const getPointerCoords = (
   e: PointerEvent | React.PointerEvent<HTMLCanvasElement>,
   round = true,
+  mode: "world" | "screen" = "world"
 ): { xCord: number; yCord: number } => {
-  const xCord = round ? Math.floor(e.clientX) : e.clientX;
-  const yCord = round ? Math.floor(e.clientY) : e.clientY;
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const screenX = e.clientX - rect.left;
+  const screenY = e.clientY - rect.top;
+  const { x, y } =
+    mode === "world"
+      ? CanvasService.screenToWorld(screenX, screenY)
+      : { x: screenX, y: screenY };
+
+  const xCord = round ? Math.floor(x) : x;
+  const yCord = round ? Math.floor(y) : y;
   return { xCord, yCord };
 };
 

@@ -67,6 +67,21 @@ In-memory structures:
 - `redoStack`: redo stack
 - `cache`: `Map<fileId, HTMLImageElement>` for faster image redraw
 
+### 5) Viewport Camera State (In-memory)
+
+Source: `src/services/CanvasService.ts`
+
+In-memory structures:
+
+- `scale`: zoom factor for world rendering.
+- `offsetX`, `offsetY`: viewport translation in screen space.
+- `ratio`: device pixel ratio used to compose final canvas transform.
+
+Behavior:
+
+- The drawing model remains in world coordinates.
+- Rendering applies a viewport transform so users can pan/zoom across an effectively unbounded workspace.
+
 ## Main Logic Flows
 
 ## A) Drawing Flow
@@ -100,7 +115,13 @@ Primary controller: `src/hooks/useBoard.ts`
    - Clears temporary state.
 
 5. Redraw
+
    - Uses `redrawCanvas` or `redrawAllElements` to repaint all persisted elements.
+
+6. Viewport interactions
+   - Wheel/trackpad scroll pans viewport.
+   - `Ctrl/Cmd + wheel` zooms around pointer via `CanvasService.zoomAt`.
+   - Drag-pan is available with middle-click, right-click, or `Shift + drag`.
 
 ## B) Selection and Edit Flow
 
@@ -126,7 +147,12 @@ Primary controller: `src/hooks/useEditBoard.ts`
    - Updates element geometry in storage during pointer movement.
 
 4. Overlay rendering
+
    - Draws selection box and resize handles on overlay canvas.
+
+5. Viewport interactions in selection mode
+   - The overlay canvas also supports the same pan/zoom interactions.
+   - Overlay selection rendering uses the same viewport transform to stay aligned with world-space elements.
 
 ## C) Undo/Redo Flow
 

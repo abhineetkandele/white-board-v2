@@ -12,6 +12,7 @@ import {
   fillAndStroke,
   createTextInput,
   redrawCanvas,
+  redrawAllElements,
 } from "../drawing";
 import { getPointerCoords, handleEraser, loadImage } from "../utils";
 
@@ -56,6 +57,8 @@ export const useBoard = () => {
     height: number;
     fileId: string;
   }>();
+  const isPanning = useRef(false);
+  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const cursorCords = useRef<number[][]>([]);
   const lineClickCount = useRef<number>(0);
 
@@ -63,6 +66,15 @@ export const useBoard = () => {
 
   const onPointerMove = useCallback(
     (e: PointerEvent) => {
+      if (isPanning.current) {
+        const dx = e.clientX - panStartRef.current.x;
+        const dy = e.clientY - panStartRef.current.y;
+        panStartRef.current = { x: e.clientX, y: e.clientY };
+        CanvasService.panBy(dx, dy);
+        redrawAllElements(CanvasService.getContext());
+        return;
+      }
+
       const { xCord, yCord } = getPointerCoords(e);
       const ctx = CanvasService.getContext();
 
@@ -125,6 +137,15 @@ export const useBoard = () => {
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
       e.stopPropagation();
+
+      if (e.button === 1 || e.button === 2 || e.shiftKey) {
+        isPanning.current = true;
+        panStartRef.current = { x: e.clientX, y: e.clientY };
+        return;
+      }
+
+      if (e.button !== 0) return;
+
       const { xCord, yCord } = getPointerCoords(e);
       isDrawing.current = true;
 
@@ -133,9 +154,13 @@ export const useBoard = () => {
 
       // Text tool
       if (type === ADD_TEXT) {
-        createTextInput(
+        const { x: textX, y: textY } = CanvasService.worldToScreen(
           xCord,
-          yCord,
+          yCord
+        );
+        createTextInput(
+          textX,
+          textY,
           lineWidth,
           globalAlpha,
           strokeStyle,
@@ -261,6 +286,11 @@ export const useBoard = () => {
 
   const onPointerUp = useCallback(
     (e: PointerEvent) => {
+      if (isPanning.current) {
+        isPanning.current = false;
+        return;
+      }
+
       const { xCord, yCord } = getPointerCoords(e);
       const { x, y } = startingCords.current!;
 
@@ -327,11 +357,34 @@ export const useBoard = () => {
     [type, setState]
   );
 
+  const onWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    const canvas = CanvasService.getCanvas();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (e.metaKey || e.ctrlKey) {
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      CanvasService.zoomAt(x, y, zoomFactor);
+    } else {
+      CanvasService.panBy(-e.deltaX, -e.deltaY);
+    }
+
+    redrawAllElements(CanvasService.getContext());
+  }, []);
+
   // ─── Resize / redraw ─────────────────────────────────────────────
 
   const handleResize = useCallback(() => {
-    redrawCanvas(boardRef.current!, onPointerDown, onPointerUp, onPointerMove);
-  }, [onPointerDown, onPointerMove, onPointerUp]);
+    redrawCanvas(
+      boardRef.current!,
+      onPointerDown,
+      onPointerUp,
+      onPointerMove,
+      onWheel
+    );
+  }, [onPointerDown, onPointerMove, onPointerUp, onWheel]);
 
   // ─── Tool-change side effects ─────────────────────────────────────
 

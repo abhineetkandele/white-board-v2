@@ -7,6 +7,10 @@ White Board v2 is a browser-based drawing canvas built with React, TypeScript, a
 - Drawing tools: Pencil, Line, Rectangle, Circle, Triangle, Diamond, Arrow, Eraser, Selection, Text, Image, and Clear.
 - Style controls: Stroke color, fill color, stroke pattern, line width, and opacity.
 - Editing: Select elements, drag, and resize with shape-specific transform logic.
+- Infinite-style canvas navigation:
+  - Pan with mouse/trackpad scroll.
+  - Zoom with `Ctrl/Cmd + wheel` around cursor.
+  - Drag-pan with middle-click, right-click, or `Shift + drag`.
 - Export: Download canvas as PNG or WEBP.
 - Persistence:
   - UI state in localStorage (`state` key).
@@ -52,6 +56,12 @@ Lint:
 ```bash
 npm run lint
 ```
+
+## Canvas Navigation Controls
+
+- `Wheel` / trackpad scroll: pan the canvas viewport.
+- `Ctrl/Cmd + Wheel`: zoom in/out centered at pointer position.
+- `Middle-click drag`, `Right-click drag`, or `Shift + Left-drag`: pan by dragging.
 
 ## Project Structure
 

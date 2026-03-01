@@ -1,10 +1,11 @@
 import type { RectPointsTuple } from "../types";
+import { CanvasService } from "../services";
 
 /**
  * Recreates a 2D context on an overlay canvas with DPI scaling.
  */
 export const recreateEditContext = (
-  canvas: HTMLCanvasElement,
+  canvas: HTMLCanvasElement
 ): CanvasRenderingContext2D => {
   const ctx = canvas.getContext("2d")!;
   const { width, height } = canvas.getBoundingClientRect();
@@ -14,7 +15,7 @@ export const recreateEditContext = (
   canvas.style.height = String(height);
   canvas.width = width * ratio;
   canvas.height = height * ratio;
-  ctx.scale(ratio, ratio);
+  CanvasService.applyViewportTransform(ctx);
 
   return ctx;
 };
@@ -29,7 +30,7 @@ export const drawSelectionBox = (
   x2: number,
   y2: number,
   w: number,
-  h: number,
+  h: number
 ): void => {
   ctx.strokeStyle = "#0000ff";
   ctx.lineWidth = 1;
@@ -45,7 +46,7 @@ export const drawSelectionBox = (
     x1 - (negW ? -5 : 5),
     y1 - (negH ? -5 : 5),
     w + (negW ? -10 : 10),
-    h + (negH ? -10 : 10),
+    h + (negH ? -10 : 10)
   );
 
   // Corner handles

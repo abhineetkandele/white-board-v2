@@ -1,3 +1,48 @@
+/**
+ * Computes the bounding box (minX, minY, maxX, maxY) of all board elements.
+ * Returns {x1, y1, x2, y2, width, height} in world coordinates.
+ */
+import type { BoardElement } from "../types";
+export function getBoardBoundingBox(elements: BoardElement[]) {
+  if (!elements.length)
+    return { x1: 0, y1: 0, x2: 0, y2: 0, width: 0, height: 0 };
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  for (const el of elements) {
+    // For path-based elements, check all path points
+    if (el.path && el.path.length) {
+      for (const [x, y] of el.path) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+    // For shapes, use x1/y1/x2/y2/width/height
+    if (typeof el.x1 === "number" && typeof el.y1 === "number") {
+      minX = Math.min(minX, el.x1);
+      minY = Math.min(minY, el.y1);
+    }
+    if (typeof el.x2 === "number" && typeof el.y2 === "number") {
+      maxX = Math.max(maxX, el.x2);
+      maxY = Math.max(maxY, el.y2);
+    }
+    if (typeof el.width === "number" && typeof el.height === "number") {
+      maxX = Math.max(maxX, el.x1 + el.width);
+      maxY = Math.max(maxY, el.y1 + el.height);
+    }
+  }
+  return {
+    x1: minX,
+    y1: minY,
+    x2: maxX,
+    y2: maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
 import type {
   BoundingRect,
   Coordinates,

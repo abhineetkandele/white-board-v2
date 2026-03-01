@@ -1,8 +1,8 @@
-import { PointerEvent, useContext, useRef } from "react";
+import { PointerEvent, WheelEvent, useContext, useRef } from "react";
 import { AppContext } from "../context";
 import { TOOLS } from "../constants";
 import { LINE_DASH_REVERSE } from "../constants/styles";
-import { StorageService } from "../services";
+import { CanvasService, StorageService } from "../services";
 import type { RectPointsTuple, ResizeCorner, StrokePattern } from "../types";
 import {
   getPointerCoords,
@@ -14,6 +14,7 @@ import {
   recreateEditContext,
   drawSelectionBox,
 } from "../utils";
+import { redrawAllElements } from "../drawing";
 
 const {
   RECTANGLE,
@@ -32,8 +33,10 @@ export const useEditBoard = (handleResize: () => void) => {
   const editCanvasRef = useRef<HTMLCanvasElement>(null);
   const selectedRect = useRef<RectPointsTuple>();
   const isEditing = useRef(false);
+  const isPanning = useRef(false);
   const resizeCorner = useRef<ResizeCorner | undefined>();
   const lastCoords = useRef<{ xCord: number; yCord: number }>();
+  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // ─── Helpers ──────────────────────────────────────────────────────
 
@@ -89,9 +92,33 @@ export const useEditBoard = (handleResize: () => void) => {
     ];
   };
 
+  const redrawSelectionOverlay = () => {
+    const editCanvas = editCanvasRef.current;
+    if (!editCanvas || !selectedElement) return;
+
+    const storage = StorageService.getElements();
+    const index = storage.findIndex((el) => el.id === selectedElement);
+    if (index < 0) return;
+
+    const item = storage[index];
+    const { x1, y1, x2, y2, w, h } = computeBoundingRect(item);
+    selectedRect.current = buildSelectionRect(w, h, x1, y1);
+
+    const ctx = recreateEditContext(editCanvas);
+    drawSelectionBox(ctx, x1, y1, x2, y2, w, h);
+  };
+
   // ─── Pointer down: select element ─────────────────────────────────
 
   const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
+    if (e.button === 1 || e.button === 2 || e.shiftKey) {
+      isPanning.current = true;
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
+
+    if (e.button !== 0) return;
+
     const { xCord, yCord } = getPointerCoords(e, false);
     const editCanvas = editCanvasRef.current!;
     const index = detectElementAtPoint(
@@ -136,6 +163,11 @@ export const useEditBoard = (handleResize: () => void) => {
   // ─── Pointer up ───────────────────────────────────────────────────
 
   const onPointerUp = () => {
+    if (isPanning.current) {
+      isPanning.current = false;
+      return;
+    }
+
     isEditing.current = false;
     resizeCorner.current = undefined;
   };
@@ -143,6 +175,16 @@ export const useEditBoard = (handleResize: () => void) => {
   // ─── Pointer move: cursor + drag/resize ───────────────────────────
 
   const onPointerMove = (e: PointerEvent<HTMLCanvasElement>) => {
+    if (isPanning.current) {
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+      CanvasService.panBy(dx, dy);
+      redrawAllElements(CanvasService.getContext());
+      redrawSelectionOverlay();
+      return;
+    }
+
     const { xCord, yCord } = getPointerCoords(e, false);
     const editCanvas = editCanvasRef.current!;
 
@@ -237,7 +279,25 @@ export const useEditBoard = (handleResize: () => void) => {
     }
   };
 
-  return { editCanvasRef, onPointerDown, onPointerUp, onPointerMove };
+  const onWheel = (e: WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (e.metaKey || e.ctrlKey) {
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      CanvasService.zoomAt(x, y, zoomFactor);
+    } else {
+      CanvasService.panBy(-e.deltaX, -e.deltaY);
+    }
+
+    redrawAllElements(CanvasService.getContext());
+    redrawSelectionOverlay();
+  };
+
+  return { editCanvasRef, onPointerDown, onPointerUp, onPointerMove, onWheel };
 };
 
 // ─── Transform helpers (pure mutations on item) ───────────────────────
